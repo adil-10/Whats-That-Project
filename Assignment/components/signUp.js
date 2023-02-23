@@ -3,13 +3,16 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import validator from 'validator';
 
-class App extends Component {
+class SignUp extends Component {
   constructor(props){
     super(props);
     this.state = {
-      email: "",
-      password: "",
-      Message: ""
+      firstName: '',
+      surName: '',
+      number: '',
+      email: '',
+      password: '',
+      Message: ''
     };
   }
 
@@ -34,17 +37,22 @@ class App extends Component {
  //validation
   validData = () => {
     
-    const { email, password } = this.state;
+    const { firstName, surName, number, email, password } = this.state;
 
     // make sure email and password isnt empty
-    if (email == "" || password == ""){
-      this.setState({Message: "Ensure email and password field aren't empty"});
+    if (firstName == '' || surName == '' || number == '' ||email == '' || password == '' ){
+      this.setState({Message: 'Ensure no fields are empty'});
       return false;
     }
 
-    if (typeof email != "string" || typeof password != "string"){
-      this.setState({Message: "Enter valid characters"});
+    if (typeof email != 'string' || typeof password != 'string'){
+      this.setState({Message: 'Enter valid characters'});
       return false;
+    }
+
+    if (!/^\d{11}$/.test(number)) {
+        this.setState({ Message: 'Enter a valid phone number' });
+        return false;
     }
 
     //call to validate email adn password, if requirements not met return false
@@ -64,7 +72,31 @@ class App extends Component {
   render() {
     const { Message } = this.state;
     return (
-      <View style={styles.container}>
+      <View style={styles.container}>   
+
+      <Text>First Name</Text>
+      <TextInput
+        placeholder = 'First Name'
+        onChangeText={firstName => this.setState({ firstName })}
+        value={this.state.firstName}
+        placeholderTextColor="gray"
+      />
+
+      <Text>Surname</Text>
+      <TextInput
+        placeholder = 'Surname'
+        onChangeText={surName => this.setState({ surName })}
+        value={this.state.surName}
+        placeholderTextColor="gray"
+        />
+
+      <Text>Phone Number</Text>
+      <TextInput
+        placeholder = 'Contact Number'
+        onChangeText={number => this.setState({ number })}
+        value={this.state.number}
+        placeholderTextColor="gray"
+      />
 
       <Text style={styles.emailPasswordLabel} >Enter Email</Text>
       <TextInput style={styles.emailPasswordInput} 
@@ -93,7 +125,7 @@ class App extends Component {
     );
   }}
 
-  export default App
+  export default SignUp
 
   const styles = StyleSheet.create({
     container: {

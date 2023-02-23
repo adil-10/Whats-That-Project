@@ -3,13 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import validator from 'validator';
 
-class signUp extends Component {
+class Login extends Component {
   constructor(props){
     super(props);
     this.state = {
       email: "",
       password: "",
-      phoneNumber: "",
       Message: ""
     };
   }
@@ -58,11 +57,6 @@ class signUp extends Component {
       this.setState({Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes"});
       return false;
     }
-
-    if (!Number.isInteger(phoneNumber)) {
-        return false;
-    }
-
     return true;
   }
 
@@ -89,16 +83,8 @@ class signUp extends Component {
          placeholderTextColor="gray"
       /> 
 
-      <Text style={styles.emailPasswordLabel}>Enter Phone Number</Text>
-      <TextInput style={styles.emailPasswordInput} 
-         placeholder="Number"
-         onChangeText={phoneNumber => this.setState({ phoneNumber})}
-         value={this.state.phoneNumber}
-         placeholderTextColor="gray"
-      /> 
-
       <TouchableOpacity style={styles.loginButton} onPress={this.login}>
-        <Text>SignUp</Text>
+        <Text>Log in</Text>
       </TouchableOpacity>
       {Message ? <Text>{Message}</Text> : null}
       
@@ -107,7 +93,7 @@ class signUp extends Component {
     );
   }}
 
-  export default App
+  export default Login
 
   const styles = StyleSheet.create({
     container: {
