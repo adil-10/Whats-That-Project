@@ -68,6 +68,10 @@ class SignUp extends Component {
     return true;
   }
 
+  static navigationOptions = {
+    header: null
+}
+
   //what user sees
   render() {
     const { Message } = this.state;

@@ -57,8 +57,13 @@ class Login extends Component {
       this.setState({Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes"});
       return false;
     }
+    
     return true;
   }
+
+static navigationOptions = {
+    header: null
+}
 
   //what user sees
   render() {
@@ -84,7 +89,15 @@ class Login extends Component {
          placeholderTextColor="gray"
       /> 
       <View style={styles.buttonsContainer}>
-      <TouchableOpacity style={styles.loginButton} onPress={this.login} >
+        
+      <TouchableOpacity 
+      style={styles.loginButton} 
+      onPress={() => {
+        const isValid = this.validData();
+        if (isValid) {
+          navigation.navigate('HomePage');
+        }
+      }}>
         <Text>Log in</Text>
       </TouchableOpacity>
 
