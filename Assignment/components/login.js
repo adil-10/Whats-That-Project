@@ -62,11 +62,13 @@ class Login extends Component {
 
   //what user sees
   render() {
+    const navigation = this.props.navigation;
     const { Message } = this.state;
     return (
       <View style={styles.container}>
 
-      <Text style={styles.emailPasswordLabel} >Enter Email</Text>
+      <Text style={styles.title} >Whats That</Text>
+
       <TextInput style={styles.emailPasswordInput} 
         placeholder="Email"
         onChangeText={email => this.setState({ email })}
@@ -74,7 +76,6 @@ class Login extends Component {
         placeholderTextColor="gray"
       /> 
 
-      <Text style={styles.emailPasswordLabel}>Enter password</Text>
       <TextInput style={styles.emailPasswordInput} 
          placeholder="Password"
          onChangeText={password => this.setState({ password})}
@@ -82,10 +83,18 @@ class Login extends Component {
          secureTextEntry={true}
          placeholderTextColor="gray"
       /> 
-
-      <TouchableOpacity style={styles.loginButton} onPress={this.login}>
+      <View style={styles.buttonsContainer}>
+      <TouchableOpacity style={styles.loginButton} onPress={this.login} >
         <Text>Log in</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity 
+      style={styles.createButton}
+      onPress={() => navigation.navigate('SignUp')}>
+        <Text>Create Account</Text>
+      </TouchableOpacity>
+      </View>
+
       {Message ? <Text>{Message}</Text> : null}
       
       <StatusBar style="auto" />
@@ -98,25 +107,55 @@ class Login extends Component {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: '#90EE90',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: 'white',
+      width: '100%',
+      paddingTop: 50,
+      paddingHorizontal: 20,
+    },
+    title: {
+      flex: 1,
+      color: 'black',
+      fontSize: 30,
+      fontWeight: 'bold',
+      marginVertical: '5%',
     },
     emailPasswordInput: {
-      color: '#fff',
       borderWidth: 1,
-      borderColor: "thistle",
-      borderRadius: 50,
-      color: "black",
-      margin: 0,
+      borderColor: 'gray',
+      width: '100%',
+      height: 30,
+      marginVertical: '2%',
+      paddingHorizontal: 5,
+      color: 'black',
     },
-
-    emailPasswordLabel: {
-      margin: 0,
+    buttonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '60%',
     },
-
     loginButton: {
-      margin: 15,
+      marginVertical: 10,
+      padding: 10,
+      width: '45%',
+      textAlign: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'white',
+      borderWidth: 1,
+      borderRadius: 5,
+      borderColor: 'black',
+    },
+    createButton: {
+      marginVertical: 10,
+      padding: 10,
+      width: '45%',
+      textAlign: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'white',
+      borderWidth: 1,
+      borderRadius: 5,
+      borderColor: 'black',
     }
   });
+

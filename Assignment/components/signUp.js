@@ -9,9 +9,9 @@ class SignUp extends Component {
     this.state = {
       firstName: '',
       surName: '',
-      number: '',
       email: '',
       password: '',
+      confirmPassword: '',
       Message: ''
     };
   }
@@ -37,10 +37,10 @@ class SignUp extends Component {
  //validation
   validData = () => {
     
-    const { firstName, surName, number, email, password } = this.state;
+    const { firstName, surName, email, password, confirmPassword } = this.state;
 
     // make sure email and password isnt empty
-    if (firstName == '' || surName == '' || number == '' ||email == '' || password == '' ){
+    if (firstName == '' || surName == '' ||email == '' || password == '' || confirmPassword == ''){
       this.setState({Message: 'Ensure no fields are empty'});
       return false;
     }
@@ -48,11 +48,6 @@ class SignUp extends Component {
     if (typeof email != 'string' || typeof password != 'string'){
       this.setState({Message: 'Enter valid characters'});
       return false;
-    }
-
-    if (!/^\d{11}$/.test(number)) {
-        this.setState({ Message: 'Enter a valid phone number' });
-        return false;
     }
 
     //call to validate email adn password, if requirements not met return false
@@ -65,40 +60,37 @@ class SignUp extends Component {
       this.setState({Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes"});
       return false;
     }
+    
+    if(confirmPassword != password){
+      this.setState({Message: 'Passwords do not match'})
+      return false;
+    }
     return true;
   }
 
   //what user sees
   render() {
     const { Message } = this.state;
+    const navigation = this.props.navigation;
     return (
       <View style={styles.container}>   
 
-      <Text>First Name</Text>
-      <TextInput
-        placeholder = 'First Name'
+      <Text style={styles.title} >Whats That</Text>
+
+      <TextInput style={styles.emailPasswordInput} 
+        placeholder = 'Forename'
         onChangeText={firstName => this.setState({ firstName })}
         value={this.state.firstName}
         placeholderTextColor="gray"
       />
 
-      <Text>Surname</Text>
-      <TextInput
+      <TextInput style={styles.emailPasswordInput} 
         placeholder = 'Surname'
         onChangeText={surName => this.setState({ surName })}
         value={this.state.surName}
         placeholderTextColor="gray"
         />
 
-      <Text>Phone Number</Text>
-      <TextInput
-        placeholder = 'Contact Number'
-        onChangeText={number => this.setState({ number })}
-        value={this.state.number}
-        placeholderTextColor="gray"
-      />
-
-      <Text style={styles.emailPasswordLabel} >Enter Email</Text>
       <TextInput style={styles.emailPasswordInput} 
         placeholder="Email"
         onChangeText={email => this.setState({ email })}
@@ -106,7 +98,6 @@ class SignUp extends Component {
         placeholderTextColor="gray"
       /> 
 
-      <Text style={styles.emailPasswordLabel}>Enter password</Text>
       <TextInput style={styles.emailPasswordInput} 
          placeholder="Password"
          onChangeText={password => this.setState({ password})}
@@ -115,8 +106,20 @@ class SignUp extends Component {
          placeholderTextColor="gray"
       /> 
 
-      <TouchableOpacity style={styles.loginButton} onPress={this.login}>
-        <Text>Log in</Text>
+      <TextInput style={styles.emailPasswordInput} 
+         placeholder="Confirm Password"
+         onChangeText={confirmPassword => this.setState({ confirmPassword})}
+         value={this.state.confirmPassword}
+         secureTextEntry={true}
+         placeholderTextColor="gray"
+      /> 
+
+      <TouchableOpacity style={styles.loginButton} 
+      onPress={this.login}
+      onPress={() => navigation.navigate('Login')}>
+
+        <Text>Sign Up</Text>
+
       </TouchableOpacity>
       {Message ? <Text>{Message}</Text> : null}
       
@@ -130,25 +133,41 @@ class SignUp extends Component {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: '#90EE90',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: 'white',
+      width: '100%',
+      paddingTop: 50,
+      paddingHorizontal: 20,
+    },
+    title: {
+      flex: 1,
+      color: 'black',
+      fontSize: 30,
+      fontWeight: 'bold',
+      marginVertical: '5%',
     },
     emailPasswordInput: {
-      color: '#fff',
       borderWidth: 1,
-      borderColor: "thistle",
-      borderRadius: 50,
-      color: "black",
-      margin: 0,
+      borderColor: 'gray',
+      width: '100%',
+      height: 30,
+      marginVertical: '2%',
+      paddingHorizontal: 5,
+      color: 'black',
     },
-
-    emailPasswordLabel: {
-      margin: 0,
-    },
-
     loginButton: {
-      margin: 15,
+      marginVertical: 10,
+      padding: 10,
+      width: 300,
+      textAlign: 'center',
+      backgroundColor: 'white',
+      borderWidth: 1,
+      borderRadius: 5,
+      borderColor: 'black',
     }
   });
+
+  // / sort background colour out
+  // sort button bolour out
+  // add logo to centre of page
