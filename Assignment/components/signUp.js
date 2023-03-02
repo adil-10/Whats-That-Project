@@ -7,22 +7,21 @@ class SignUp extends Component {
   constructor(props){
     super(props);
     this.state = {
-      firstName: '',
-      surName: '',
+      first_name: '',
+      last_name: '',
       email: '',
       password: '',
       confirmPassword: '',
-      Message: ''
+      Message: '',
     };
   }
 
-  login = () => {
-
+  signUp = () => {
+    this.setState({ Message: '' }); // clear error message
     const isValid = this.validData(); // validate the input data
     if (isValid) {
-      const { email, password } = this.state;
-      // this.setState({Message: `Email: ${email}\nPassword: ${password}`});
-      this.setState({Message: "Success"});
+      if(this.addUser())
+        navigation.navigate('Login');
     }
   }
 
@@ -31,16 +30,18 @@ class SignUp extends Component {
   }
 
   validatePassword = (password) => {
-    return validator.isStrongPassword(password);
+
+    const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+    return passwdregex.test(password);
   }
 
  //validation
   validData = () => {
     
-    const { firstName, surName, email, password, confirmPassword } = this.state;
+    const { first_name, last_name, email, password, confirmPassword } = this.state;
 
     // make sure email and password isnt empty
-    if (firstName == '' || surName == '' ||email == '' || password == '' || confirmPassword == ''){
+    if (first_name == '' || last_name == '' ||email == '' || password == '' || confirmPassword == ''){
       this.setState({Message: 'Ensure no fields are empty'});
       return false;
     }
@@ -67,10 +68,31 @@ class SignUp extends Component {
     }
     return true;
   }
+ 
+  addUser(){
 
-  static navigationOptions = {
-    header: null
-}
+    let toSend = {
+      first_name: this.state.first_name,
+      last_name: this.state.last_name,
+      email: this.state.email,
+      password: this.state.password
+    };
+
+    console.log("HERE",toSend)
+    return fetch("http://127.0.0.1:3333/api/1.0.0/user",{
+      method: 'POST',
+      headers: {
+        'Content-Type' : 'application/json'
+      },
+      body: JSON.stringify(toSend)
+    })
+    .then((response) => {
+      console.log('user created')
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  }
 
   //what user sees
   render() {
@@ -83,15 +105,15 @@ class SignUp extends Component {
 
       <TextInput style={styles.emailPasswordInput} 
         placeholder = 'Forename'
-        onChangeText={firstName => this.setState({ firstName })}
-        value={this.state.firstName}
+        onChangeText={first_name => this.setState({ first_name })}
+        value={this.state.first_name}
         placeholderTextColor="gray"
       />
 
       <TextInput style={styles.emailPasswordInput} 
         placeholder = 'Surname'
-        onChangeText={surName => this.setState({ surName })}
-        value={this.state.surName}
+        onChangeText={last_name => this.setState({ last_name })}
+        value={this.state.last_name}
         placeholderTextColor="gray"
         />
 
@@ -119,15 +141,16 @@ class SignUp extends Component {
       /> 
 
       <TouchableOpacity style={styles.loginButton} 
-      onPress={this.login}
-      onPress={() => navigation.navigate('Login')}>
+      onPress={this.signUp}>
 
         <Text>Sign Up</Text>
 
       </TouchableOpacity>
+
       {Message ? <Text>{Message}</Text> : null}
       
       <StatusBar style="auto" />
+
     </View>
     );
   }}
@@ -137,7 +160,7 @@ class SignUp extends Component {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#90EE90',
+      backgroundColor: 'white',
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
@@ -145,9 +168,8 @@ class SignUp extends Component {
       paddingHorizontal: 20,
     },
     title: {
-      flex: 1,
       color: 'black',
-      fontSize: 30,
+      fontSize: 50,
       fontWeight: 'bold',
       marginVertical: '5%',
     },
@@ -165,9 +187,9 @@ class SignUp extends Component {
       padding: 10,
       width: 300,
       textAlign: 'center',
-      backgroundColor: 'white',
+      backgroundColor: '#c8ada4',
       borderWidth: 1,
-      borderRadius: 5,
+      borderRadius: 10,
       borderColor: 'black',
     }
   });

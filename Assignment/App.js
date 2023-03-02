@@ -11,6 +11,7 @@ import Login from './components/login';
 import SignUp from './components/signUp';
 import HomePage from './components/homePage';
 import Contacts from './components/contacts';
+import Profile from './components/profile';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -20,6 +21,7 @@ const HomeTab = () => {
     <Tab.Navigator>
       <Tab.Screen name='HomePage' component={HomePage} />
       <Tab.Screen name='Contacts' component={Contacts}/>
+      <Tab.Screen name='Profile' component={Profile}/>
     </Tab.Navigator>
   );
 }

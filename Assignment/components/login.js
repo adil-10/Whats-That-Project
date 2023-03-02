@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import validator from 'validator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Login extends Component {
   constructor(props){
@@ -13,22 +14,21 @@ class Login extends Component {
     };
   }
 
-  login = () => {
-
-    const isValid = this.validData(); // validate the input data
-    if (isValid) {
-      const { email, password } = this.state;
-      // this.setState({Message: `Email: ${email}\nPassword: ${password}`});
-      this.setState({Message: "Success"});
-    }
+login = () => {
+  const navigation = this.props.navigation;
+  const isValid = this.validData(); // validate the input data
+  if (isValid) {
+    this.loginUser();
   }
+}
 
   validateEmail = (email) => {
     return validator.isEmail(email);  
   }
 
   validatePassword = (password) => {
-    return validator.isStrongPassword(password);
+    const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+    return passwdregex.test(password);
   }
 
  //validation
@@ -61,9 +61,31 @@ class Login extends Component {
     return true;
   }
 
-static navigationOptions = {
-    header: null
-}
+  loginUser = async () => {
+    const navigation = this.props.navigation;
+  
+    return fetch("http://127.0.0.1:3333/api/1.0.0/login",{
+      method: 'POST',
+      headers: {
+        'Content-Type' : 'application/json'
+      },
+      body: JSON.stringify({  
+        "email": this.state.email,
+        "password": this.state.password
+      })
+    })
+  
+    .then(async (response) => {
+      const responseJson = await response.json();
+      console.log(responseJson)
+      await AsyncStorage.setItem('@user_id', responseJson.id)
+      await AsyncStorage.setItem('@session_token', responseJson.token);
+      this.props.navigation.navigate('HomePage')
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  }
 
   //what user sees
   render() {
@@ -88,17 +110,11 @@ static navigationOptions = {
          secureTextEntry={true}
          placeholderTextColor="gray"
       /> 
-      <View style={styles.buttonsContainer}>
-        
-      <TouchableOpacity 
-      style={styles.loginButton} 
-      onPress={() => {
-        const isValid = this.validData();
-        if (isValid) {
-          navigation.navigate('HomePage');
-        }
-      }}>
-        <Text>Log in</Text>
+      {/* <View style={styles.buttonsContainer}> */}
+
+      <TouchableOpacity style={styles.loginButton} 
+      onPress={this.login}>
+        <Text>log in</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
@@ -106,11 +122,12 @@ static navigationOptions = {
       onPress={() => navigation.navigate('SignUp')}>
         <Text>Create Account</Text>
       </TouchableOpacity>
-      </View>
+      {/* </View> */}
 
       {Message ? <Text>{Message}</Text> : null}
       
       <StatusBar style="auto" />
+
     </View>
     );
   }}
@@ -120,17 +137,16 @@ static navigationOptions = {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#90EE90',
+      backgroundColor: 'white',
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
-      paddingTop: 50,
+      paddingTop: 20,
       paddingHorizontal: 20,
     },
     title: {
-      flex: 1,
       color: 'black',
-      fontSize: 30,
+      fontSize: 50,
       fontWeight: 'bold',
       marginVertical: '5%',
     },
@@ -138,37 +154,32 @@ static navigationOptions = {
       borderWidth: 1,
       borderColor: 'gray',
       width: '100%',
-      height: 30,
+      height: 50,
       marginVertical: '2%',
       paddingHorizontal: 5,
       color: 'black',
     },
-    buttonsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '60%',
-    },
+
     loginButton: {
       marginVertical: 10,
       padding: 10,
-      width: '45%',
+      width: '75%',
       textAlign: 'center',
       justifyContent: 'center',
-      backgroundColor: 'white',
+      backgroundColor: '#c8ada4',
       borderWidth: 1,
-      borderRadius: 5,
+      borderRadius: 10,
       borderColor: 'black',
     },
     createButton: {
       marginVertical: 10,
       padding: 10,
-      width: '45%',
+      width: '75%',
       textAlign: 'center',
       justifyContent: 'center',
-      backgroundColor: 'white',
+      backgroundColor: '#c8ada4',
       borderWidth: 1,
-      borderRadius: 5,
+      borderRadius: 10,
       borderColor: 'black',
     }
   });
-
