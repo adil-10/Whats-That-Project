@@ -42,11 +42,41 @@ class Profile extends Component{
     render(){
         return(
             <View style={styles.container}>
-            <TouchableOpacity
-            onPress={() => this.logout()}> 
-                <Text>Logout</Text>
-            </TouchableOpacity>
-        </View>
+
+                <TextInput style={styles.inputBox}
+                placeholder= "first name"
+                placeholderTextColor="gray">
+                {/* onChangeText={email => this.setState({ email })}
+                value={this.state.email} */}
+                </TextInput>
+
+                <TextInput style={styles.inputBox}
+                placeholder= "last name"
+                placeholderTextColor="gray">
+                {/* onChangeText={email => this.setState({ email })}
+                value={this.state.email} */}
+                </TextInput>
+
+                <TextInput style={styles.inputBox}
+                placeholder= "email"
+                placeholderTextColor="gray">
+                {/* onChangeText={email => this.setState({ email })}
+                value={this.state.email} */}
+                </TextInput>
+
+                <TextInput style={styles.inputBox}
+                placeholder= "Password"
+                placeholderTextColor="gray">
+                {/* onChangeText={email => this.setState({ email })}
+                value={this.state.email} */}
+                </TextInput>
+
+                
+                <TouchableOpacity style={styles.buttonDesign}
+                onPress={() => this.logout()}> 
+                    <Text>Logout</Text>
+                </TouchableOpacity>
+            </View>
         );
     }
 }
@@ -63,8 +93,32 @@ const styles = StyleSheet.create({
       paddingTop: 20,
       paddingHorizontal: 20,
     },
+    inputBox: {
+        borderWidth: 1,
+        borderColor: 'gray',
+        width: '100%',
+        height: 50,
+        marginVertical: '2%',
+        paddingHorizontal: 5,
+        color: 'black',
+        textAlign: 'center',
+        justifyContent: 'center',
+      },
 
     buttonDesign:{
-
+        marginVertical: 10,
+        padding: 10,
+        width: '75%',
+        textAlign: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#c8ada4',
+        borderWidth: 1,
+        borderRadius: 10,
+        borderColor: 'black',
     }
 })
+
+// post method to show data of user needed 
+// authstack needs doing for navigation\
+// logoin post method needs finishiong
+// compound didmound
