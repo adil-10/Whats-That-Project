@@ -13,11 +13,13 @@ class Profile extends Component {
     };
   }
 
+
+  //display user data
   getData = async () => {
     try {
       const userId = await AsyncStorage.getItem('@user_id');
 
-      let response = await fetch('http://127.0.0.1:3333/api/1.0.0/user/${userId}', {
+      let response = await fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId, {
         method: 'GET',
         headers: {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
@@ -26,11 +28,7 @@ class Profile extends Component {
       let json = await response.json();
       this.setState({
         isLoading: false,
-        userData: {
-          first_name: json.first_name,
-          last_name: json.last_name,
-          email: json.email,
-        },
+        userData: json
       });
     } 
     catch (error) {
@@ -42,11 +40,12 @@ class Profile extends Component {
     this.getData();
   }
 
+  //logout delete session token adn id
   logout = async () => {
     const navigation = this.props.navigation;
     console.log('logout');
     try {
-      let response = await fetch('http://127.0.0.1:3333/api/1.0.0/logout', {
+      let response = await fetch("http://127.0.0.1:3333/api/1.0.0/logout", {
         method: 'POST',
         headers: {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
@@ -80,33 +79,17 @@ class Profile extends Component {
           style={styles.inputBox}
           placeholder="First Name"
           placeholderTextColor="gray"
-          onChangeText={(firstName) =>
-            this.setState({
-              userData: { ...this.state.userData, first_name: firstName },
-            })
-          }
           value={this.state.userData.first_name}
         />
         <TextInput
           style={styles.inputBox}
           placeholder="Last Name"
           placeholderTextColor="gray"
-          onChangeText={(lastName) =>
-            this.setState({
-              userData: { ...this.state.userData, last_name: lastName },
-            })
-          }
           value={this.state.userData.last_name}
         />
-        <TextInput
-          style={styles.inputBox}
+        <TextInput style={styles.inputBox}
           placeholder="Email"
           placeholderTextColor="gray"
-          onChangeText={(email) =>
-            this.setState({
-              userData: { ...this.state.userData, email: email },
-            })
-          }
           value={this.state.userData.email}
         />
         <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
