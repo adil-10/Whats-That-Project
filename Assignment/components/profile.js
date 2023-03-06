@@ -1,85 +1,122 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-class Profile extends Component{
+class Profile extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: true,
+      userData: { first_name: '', last_name: '', email: '' },
+    };
+  }
 
+  getData = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('@user_id');
 
-    async logout(){
-        const navigation = this.props.navigation;
-        console.log('logout')
-        return fetch("http://127.0.0.1:3333/api/1.0.0/logout",{
+      let response = await fetch('http://127.0.0.1:3333/api/1.0.0/user/${userId}', {
+        method: 'GET',
+        headers: {
+          'X-Authorization': await AsyncStorage.getItem('@session_token'),
+        },
+      });
+      let json = await response.json();
+      this.setState({
+        isLoading: false,
+        userData: {
+          first_name: json.first_name,
+          last_name: json.last_name,
+          email: json.email,
+        },
+      });
+    } 
+    catch (error) {
+      console.log(error);
+    }
+  };
+
+  componentDidMount() {
+    this.getData();
+  }
+
+  logout = async () => {
+    const navigation = this.props.navigation;
+    console.log('logout');
+    try {
+      let response = await fetch('http://127.0.0.1:3333/api/1.0.0/logout', {
         method: 'POST',
         headers: {
-            "X-Authorization" : await AsyncStorage.getItem("@session_token")
+          'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
-        })
+      });
 
-        .then(async(response) => {
-            if(response.status === 200){
-                await AsyncStorage.removeItem("@session_token")
-                await AsyncStorage.removeItem("@user_id")
-                this.props.navigation.navigate('Login')
-            }
-            else if(response.status === 401){
-                console.log('Unauthorised')
-                await AsyncStorage.removeItem("@session_token")
-                await AsyncStorage.removeItem("@user_id")
-                this.props.navigation.navigate('Login')
-            }
-            else{
-                throw 'Something went wrong'
-            }
-        })
-        .catch((error) => {
-            this.setState("error", error);
-            this.setState("submitted", false);
-        })
+      if (response.status === 200) {
+        await AsyncStorage.removeItem('@session_token');
+        await AsyncStorage.removeItem('@user_id');
+        navigation.navigate('Login');
+      } 
+      else if (response.status === 401) {
+        console.log('Unauthorised');
+        await AsyncStorage.removeItem('@session_token');
+        await AsyncStorage.removeItem('@user_id');
+        navigation.navigate('Login');
+      } 
+      else {
+        throw 'Something went wrong';
+      }
+    } 
+    catch (error) {
+      console.log(error);
     }
+  };
     
-    render(){
-        return(
-            <View style={styles.container}>
-
-                <TextInput style={styles.inputBox}
-                placeholder= "first name"
-                placeholderTextColor="gray">
-                {/* onChangeText={email => this.setState({ email })}
-                value={this.state.email} */}
-                </TextInput>
-
-                <TextInput style={styles.inputBox}
-                placeholder= "last name"
-                placeholderTextColor="gray">
-                {/* onChangeText={email => this.setState({ email })}
-                value={this.state.email} */}
-                </TextInput>
-
-                <TextInput style={styles.inputBox}
-                placeholder= "email"
-                placeholderTextColor="gray">
-                {/* onChangeText={email => this.setState({ email })}
-                value={this.state.email} */}
-                </TextInput>
-
-                <TextInput style={styles.inputBox}
-                placeholder= "Password"
-                placeholderTextColor="gray">
-                {/* onChangeText={email => this.setState({ email })}
-                value={this.state.email} */}
-                </TextInput>
-
-                
-                <TouchableOpacity style={styles.buttonDesign}
-                onPress={() => this.logout()}> 
-                    <Text>Logout</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
+  render() {
+    return (
+      <View style={styles.container}>
+        <TextInput
+          style={styles.inputBox}
+          placeholder="First Name"
+          placeholderTextColor="gray"
+          onChangeText={(firstName) =>
+            this.setState({
+              userData: { ...this.state.userData, first_name: firstName },
+            })
+          }
+          value={this.state.userData.first_name}
+        />
+        <TextInput
+          style={styles.inputBox}
+          placeholder="Last Name"
+          placeholderTextColor="gray"
+          onChangeText={(lastName) =>
+            this.setState({
+              userData: { ...this.state.userData, last_name: lastName },
+            })
+          }
+          value={this.state.userData.last_name}
+        />
+        <TextInput
+          style={styles.inputBox}
+          placeholder="Email"
+          placeholderTextColor="gray"
+          onChangeText={(email) =>
+            this.setState({
+              userData: { ...this.state.userData, email: email },
+            })
+          }
+          value={this.state.userData.email}
+        />
+        <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
+          <Text>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 }
+
 
 export default Profile;
 
