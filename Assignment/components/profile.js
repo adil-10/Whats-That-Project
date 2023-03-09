@@ -40,7 +40,32 @@ class Profile extends Component {
     this.getData();
   }
 
-  //logout delete session token adn id
+  // update user info
+  updateUser = async() => {
+    const userId = await AsyncStorage.getItem('@user_id');
+    let toSend = {
+      first_name: this.state.userData.first_name,
+      last_name: this.state.userData.last_name,
+      email: this.state.userData.email,
+    };
+  
+    return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId,{
+      method: 'PATCH',
+      headers: {
+        'Content-Type' : 'application/json',
+        'X-Authorization': await AsyncStorage.getItem('@session_token')
+      },
+      body: JSON.stringify(toSend)
+    })
+    .then((response) => {
+      console.log('user updated')
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  }
+
+  //logout delete session token and id
   logout = async () => {
     const navigation = this.props.navigation;
     console.log('logout');
@@ -75,25 +100,34 @@ class Profile extends Component {
   render() {
     return (
       <View style={styles.container}>
+
         <TextInput
-          style={styles.inputBox}
-          placeholder="First Name"
-          placeholderTextColor="gray"
-          value={this.state.userData.first_name}
+        style={styles.inputBox}
+        placeholder="First Name"
+        placeholderTextColor="gray"
+        onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,first_name: text}}))}
+        value={this.state.userData.first_name}
         />
+
         <TextInput
           style={styles.inputBox}
           placeholder="Last Name"
           placeholderTextColor="gray"
+          onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,last_name: text}}))}
           value={this.state.userData.last_name}
         />
         <TextInput style={styles.inputBox}
           placeholder="Email"
           placeholderTextColor="gray"
+          onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,email: text}}))}
           value={this.state.userData.email}
         />
         <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
           <Text>Logout</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.buttonDesign} onPress={() => this.updateUser()}>
+          <Text>Update</Text>
         </TouchableOpacity>
       </View>
     );
@@ -138,7 +172,6 @@ const styles = StyleSheet.create({
     }
 })
 
-// post method to show data of user needed 
 // authstack needs doing for navigation\
 // logoin post method needs finishiong
 // compound didmound
