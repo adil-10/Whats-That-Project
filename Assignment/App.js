@@ -12,6 +12,7 @@ import SignUp from './components/signUp';
 import HomePage from './components/homePage';
 import Contacts from './components/contacts';
 import Profile from './components/profile';
+import ChangePass from './components/changePass';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -33,6 +34,7 @@ export default class App extends Component {
         <Stack.Navigator>
           <Stack.Screen name='Login' component={Login}/>
           <Stack.Screen name='SignUp' component={SignUp}/>
+          <Stack.Screen name='ChangePass' component={ChangePass}/>
           <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: false }}/>
         </Stack.Navigator>
       </NavigationContainer>

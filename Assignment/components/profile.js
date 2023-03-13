@@ -9,7 +9,7 @@ class Profile extends Component {
     super(props);
     this.state = {
       isLoading: true,
-      userData: { first_name: '', last_name: '', email: '' },
+      userData: { first_name: '', last_name: '', email: '' }
     };
   }
 
@@ -98,6 +98,7 @@ class Profile extends Component {
   };
     
   render() {
+    const navigation = this.props.navigation;
     return (
       <View style={styles.container}>
 
@@ -122,13 +123,20 @@ class Profile extends Component {
           onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,email: text}}))}
           value={this.state.userData.email}
         />
-        <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
-          <Text>Logout</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity style={styles.buttonDesign} onPress={() => this.updateUser()}>
           <Text>Update</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.buttonDesign} onPress={() => navigation.navigate('ChangePass')}>
+          <Text>Change Password</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
+          <Text>Logout</Text>
+        </TouchableOpacity>
+
+
       </View>
     );
   }
@@ -172,6 +180,6 @@ const styles = StyleSheet.create({
     }
 })
 
-// authstack needs doing for navigation\
+
 // logoin post method needs finishiong
 // compound didmound
