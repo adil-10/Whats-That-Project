@@ -10,14 +10,14 @@ class ChangePass extends Component{
         this.state = {
           isLoading: true,
           confirmPassword: '',
-          userData: { password: '' }
+          password: ''
         };
       }
 
       updateUser = async() => {
         const userId = await AsyncStorage.getItem('@user_id');
         let toSend = {
-          password: this.state.userData.password,
+          password: this.state.password,
         };
       
         return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId,{
@@ -41,11 +41,11 @@ class ChangePass extends Component{
 
         const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
       
-        if(this.state.confirmPassword != this.state.userData.password){
+        if(this.state.confirmPassword != this.state.password){
             this.setState({Message: 'Passwords do not match'})
             return false;
         }
-        if(this.state.userData.password != passwdregex){
+        if(this.state.password != passwdregex){
             return passwdregex.test(this.state.userData.password);
         } 
       
@@ -60,7 +60,7 @@ class ChangePass extends Component{
                     style={styles.inputBox}
                     placeholder="Enter New Password"
                     placeholderTextColor="gray"
-                    onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData, password: text}}))}
+                    onChangeText={(text) => this.setState({ password: text })}
                     secureTextEntry={true}
                     value={this.state.password}
                 /> 

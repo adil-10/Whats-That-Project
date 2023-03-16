@@ -1,20 +1,43 @@
 import React, { Component } from 'react';
-import { Text, View, Button } from 'react-native';
+import { Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-class HomePage extends Component{
-
+class HomePage extends Component {
     
-    render(){
+    componentDidMount() {
+        const navigation = this.props.navigation;
+        console.log("HomePage mounted");
+        this.unsubscribe = this.props.navigation.addListener('focus', () => {
+          this.checkLoggedIn();
+        });
+      }
+      
+      componentWillUnmount() {
+        console.log("HomePage unmounted");
+        this.unsubscribe();
+      }
+      
 
-        return(
-            // <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  checkLoggedIn = async () => {
+    const navigation = this.props.navigation;
+    const value = await AsyncStorage.getItem('@session_token');
 
-            // <Text>Home!</Text>
-            <View>
-                <Text>Hello i am the home page</Text>
-            </View>
-        );
+    if (value != null) {
+        this.props.navigation.navigate('HomePage');
     }
+
+    if (value == null) {
+      this.props.navigation.navigate('Login');
+    }
+  };
+
+  render() {
+    return (
+      <View>
+        <Text>Hello, I am the home page</Text>
+      </View>
+    );
+  }
 }
 
 export default HomePage;

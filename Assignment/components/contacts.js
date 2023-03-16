@@ -9,9 +9,9 @@ class Contacts extends Component{
         super(props);
         this.state = {
           isLoading: true,
-        //   searchQuery: '',
           email: '',
-          emailResult: ''
+          emailResult: '',
+          accountFound: null
         };
       }
 
@@ -27,20 +27,34 @@ class Contacts extends Component{
               'X-Authorization': await AsyncStorage.getItem('@session_token'),
             },
           });
+      
           let json = await response.json();
-          this.setState({
-            emailResult: this.state.email
-          });
+      
+          if (json[0]?.email === email) { 
+            this.setState({
+              emailResult: email,
+              accountFound: true
+            });
+          } 
+          else {
+            this.setState({
+              emailResult: "Email not found: please try again",
+              accountFound: false
+            });
+          }
         } 
         catch (error) {
           console.log(error);
         }
       };
       
+      
+      
     
     render(){
         return(
             <View style={styles.container}>
+                <View style={styles.inputContainer}>
                 <TextInput
                 style={styles.inputBox}
                 placeholder="Enter email"
@@ -52,10 +66,23 @@ class Contacts extends Component{
                 onPress={() => this.SearchUser()}>
                     <Text> Search</Text>
                 </TouchableOpacity>
-
+                </View>
+                
+                {/* if account found email address */}
+                {this.state.accountFound === true && (
                 <View style={styles.chatView}>
                     <Text>{this.state.emailResult}</Text>
+                    <TouchableOpacity 
+                    style={styles.addButton}>
+                        <Text>Add</Text></TouchableOpacity>
                 </View>
+                )}
+
+                {/* if account not found show text result, email not found */}
+                {this.state.accountFound === false && (
+                    <Text>{this.state.emailResult}</Text>  
+                )}
+
             </View>
         );
     }
@@ -67,44 +94,67 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: 'white',
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
       width: '100%',
       paddingTop: 20,
       paddingHorizontal: 20,
     },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+      marginVertical: 10,
+      paddingHorizontal: 5,
+    },
     chatView: {
-        borderWidth: 1,
-        borderColor: 'black',
-        width: '100%',
-        height: 50,
-        marginVertical: '2%',
-        paddingHorizontal: 5,
-        color: 'black',
-        textAlign: 'center',
-        justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: 'black',
+      width: '100%',
+      height: 50,
+      marginVertical: '2%',
+      paddingHorizontal: 5,
+      color: 'black',
+      flexDirection: 'row',
+      alignItems: 'center',
+      textAlign: 'center',
+      justifyContent: 'space-between', // Updated to use space-between for horizontal alignment
     },
     inputBox: {
-        borderWidth: 1,
-        borderColor: 'gray',
-        width: '100%',
-        height: 50,
-        marginVertical: '2%',
-        paddingHorizontal: 5,
-        color: 'black',
-        textAlign: 'center',
-        justifyContent: 'center',
-      },
-
-    buttonDesign:{
+      borderWidth: 1,
+      borderColor: 'gray',
+      width: '60%',
+      height: 50,
+      marginVertical: '2%',
+      paddingHorizontal: 5,
+      color: 'black',
+      textAlign: 'center',
+      justifyContent: 'center',
+    },
+  
+    buttonDesign: {
+      marginVertical: 10,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      width: '35%',
+      textAlign: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#c8ada4',
+      borderWidth: 1,
+      borderRadius: 10,
+      borderColor: 'black',
+    },
+      
+      addButton: {
         marginVertical: 10,
-        padding: 10,
-        width: '75%',
-        textAlign: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#c8ada4',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        width: '25%',
         borderWidth: 1,
         borderRadius: 10,
         borderColor: 'black',
-    }
-})
+        backgroundColor: 'green'
+      }
+      
+  });

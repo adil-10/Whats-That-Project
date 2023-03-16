@@ -9,7 +9,10 @@ class Profile extends Component {
     super(props);
     this.state = {
       isLoading: true,
-      userData: { first_name: '', last_name: '', email: '' }
+    //   userData: { first_name: '', last_name: '', email: '' },
+      first_name: '',
+      last_name:'',
+      email:''
     };
   }
 
@@ -28,7 +31,9 @@ class Profile extends Component {
       let json = await response.json();
       this.setState({
         isLoading: false,
-        userData: json
+        first_name: json.first_name,
+        last_name: json.last_name,
+        email: json.email
       });
     } 
     catch (error) {
@@ -44,9 +49,9 @@ class Profile extends Component {
   updateUser = async() => {
     const userId = await AsyncStorage.getItem('@user_id');
     let toSend = {
-      first_name: this.state.userData.first_name,
-      last_name: this.state.userData.last_name,
-      email: this.state.userData.email,
+      first_name: this.state.first_name,
+      last_name: this.state.last_name,
+      email: this.state.email,
     };
   
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId,{
@@ -106,22 +111,23 @@ class Profile extends Component {
         style={styles.inputBox}
         placeholder="First Name"
         placeholderTextColor="gray"
-        onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,first_name: text}}))}
-        value={this.state.userData.first_name}
+        onChangeText={(text) => this.setState({ first_name: text })}
+        value={this.state.first_name}
         />
 
         <TextInput
           style={styles.inputBox}
           placeholder="Last Name"
           placeholderTextColor="gray"
-          onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,last_name: text}}))}
-          value={this.state.userData.last_name}
+          onChangeText={(text) => this.setState({ last_name: text })}
+          value={this.state.last_name}
         />
+        
         <TextInput style={styles.inputBox}
           placeholder="Email"
           placeholderTextColor="gray"
-          onChangeText={text => this.setState(prevState => ({userData: {...prevState.userData,email: text}}))}
-          value={this.state.userData.email}
+          onChangeText={(text) => this.setState({ email: text })}
+          value={this.state.email}
         />
 
         <TouchableOpacity style={styles.buttonDesign} onPress={() => this.updateUser()}>

@@ -20,9 +20,9 @@ const Tab = createBottomTabNavigator();
 const HomeTab = () => {
   return (
     <Tab.Navigator>
-      <Tab.Screen name='HomePage' component={HomePage} />
-      <Tab.Screen name='Contacts' component={Contacts}/>
-      <Tab.Screen name='Profile' component={Profile}/>
+      <Tab.Screen name='HomePage' component={HomePage} options={{ headerShown: false }}/>
+      <Tab.Screen name='Contacts' component={Contacts} options={{ headerShown: false }}/>
+      <Tab.Screen name='Profile' component={Profile} options={{ headerShown: false }}/>
     </Tab.Navigator>
   );
 }
@@ -32,9 +32,9 @@ export default class App extends Component {
     return (
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name='Login' component={Login}/>
-          <Stack.Screen name='SignUp' component={SignUp}/>
-          <Stack.Screen name='ChangePass' component={ChangePass}/>
+          <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
+          <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: false }}/>
+          <Stack.Screen name='ChangePass' component={ChangePass} options={{ headerShown: false }}/>
           <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: false }}/>
         </Stack.Navigator>
       </NavigationContainer>
