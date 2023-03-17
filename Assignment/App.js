@@ -13,7 +13,7 @@ import HomePage from './components/homePage';
 import Contacts from './components/contacts';
 import Profile from './components/profile';
 import ChangePass from './components/changePass';
-
+import BlockedContacts from './components/blockedContacts';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -27,6 +27,17 @@ const HomeTab = () => {
   );
 }
 
+// const AllContacts = () => {
+//   return (
+//     <Tab.Navigator>
+//       <Tab.Screen name='HomePage' component={HomePage} options={{ headerShown: false }}/>
+//       <Tab.Screen name='Contacts' component={Contacts} options={{ headerShown: false }}/>
+//       <Tab.Screen name='BlockedContacts' component={BlockedContacts} options={{ headerShown: false }}/>
+//     </Tab.Navigator>
+//   );
+// }
+
+
 export default class App extends Component {
   render(){
     return (
@@ -36,6 +47,7 @@ export default class App extends Component {
           <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: false }}/>
           <Stack.Screen name='ChangePass' component={ChangePass} options={{ headerShown: false }}/>
           <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: false }}/>
+          {/* <Stack.Screen name='Contacts' component={AllContacts} options={{ headerShown: false }}/> */}
         </Stack.Navigator>
       </NavigationContainer>
     )

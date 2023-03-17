@@ -9,7 +9,6 @@ class Profile extends Component {
     super(props);
     this.state = {
       isLoading: true,
-    //   userData: { first_name: '', last_name: '', email: '' },
       first_name: '',
       last_name:'',
       email:''
