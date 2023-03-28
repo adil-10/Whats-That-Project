@@ -53,10 +53,10 @@ login = () => {
       return false;
     }
     
-    if (!this.validatePassword(password)){
-      this.setState({Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes"});
-      return false;
-    }
+    // if (!this.validatePassword(password)){
+    //   this.setState({Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes"});
+    //   return false;
+    // }
     
     return true;
   }

@@ -184,7 +184,3 @@ const styles = StyleSheet.create({
         borderColor: 'black',
     }
 })
-
-
-// logoin post method needs finishiong
-// compound didmound

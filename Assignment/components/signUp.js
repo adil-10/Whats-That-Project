@@ -147,7 +147,7 @@ class SignUp extends Component {
 
       </TouchableOpacity>
 
-      {Message ? <Text>{Message}</Text> : null}
+      <Text>{Message}</Text>
       
       <StatusBar style="auto" />
 

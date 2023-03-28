@@ -14,6 +14,8 @@ import Contacts from './components/contacts';
 import Profile from './components/profile';
 import ChangePass from './components/changePass';
 import BlockedContacts from './components/blockedContacts';
+import SearchContact from './components/searchContact';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +24,7 @@ const HomeTab = () => {
     <Tab.Navigator>
       <Tab.Screen name='HomePage' component={HomePage} options={{ headerShown: false }}/>
       <Tab.Screen name='Contacts' component={Contacts} options={{ headerShown: false }}/>
+      <Tab.Screen name='BlockedContacts' component={BlockedContacts} options={{ headerShown: false }}/>
       <Tab.Screen name='Profile' component={Profile} options={{ headerShown: false }}/>
     </Tab.Navigator>
   );
@@ -43,11 +46,11 @@ export default class App extends Component {
     return (
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
-          <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: false }}/>
-          <Stack.Screen name='ChangePass' component={ChangePass} options={{ headerShown: false }}/>
-          <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: false }}/>
-          {/* <Stack.Screen name='Contacts' component={AllContacts} options={{ headerShown: false }}/> */}
+          <Stack.Screen name='Login' component={Login} options={{ headerShown: true }}/>
+          <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: true }}/>
+          <Stack.Screen name='ChangePass' component={ChangePass} options={{ headerShown: true }}/>
+          <Stack.Screen name='SearchContact' component={SearchContact} options={{ headerShown: true }}/> 
+          <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: true}}/>
         </Stack.Navigator>
       </NavigationContainer>
     )
