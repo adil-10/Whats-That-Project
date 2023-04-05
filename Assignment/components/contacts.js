@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator} from 'react-native';
+import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-class Contacts extends Component{
+class Contacts extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -18,7 +18,7 @@ class Contacts extends Component{
       userData: []
     };
   }
-   
+
   //display user data
   displayContacts = async () => {
     try {
@@ -33,7 +33,7 @@ class Contacts extends Component{
         isLoading: false,
         userData: json,
       });
-    } 
+    }
     catch (error) {
       console.log(error);
     }
@@ -42,68 +42,68 @@ class Contacts extends Component{
   componentDidMount() {
     this.displayContacts();
   }
-             
+
   deleteContact = async (user_id) => {
-    return fetch ("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/contact",{
+    return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/contact", {
       method: 'DELETE',
       headers: {
-        'Content-Type' : 'application/json',
+        'Content-Type': 'application/json',
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
-    .then((response) =>{
-      this.displayContacts();
-    })
-    .then((response) =>{
-      console.log("item deleted");
-    })
-    .catch((error) =>{
-      console.log(error);
-    })
+      .then((response) => {
+        this.displayContacts();
+      })
+      .then((response) => {
+        console.log("item deleted");
+      })
+      .catch((error) => {
+        console.log(error);
+      })
   }
 
   blockUser = async (user_id) => {
-    return fetch ("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block",{
+    return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block", {
       method: 'POST',
       headers: {
-        'Content-Type' : 'application/json',
+        'Content-Type': 'application/json',
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
-    .then((response) =>{
-      this.displayContacts();
-    })
-    .then(async (response) => {
-      console.log('user blocked');
-    })
-    .catch((error) => {
-      console.log('error:', error);
-    })
+      .then((response) => {
+        this.displayContacts();
+      })
+      .then(async (response) => {
+        console.log('user blocked');
+      })
+      .catch((error) => {
+        console.log('error:', error);
+      })
   }
 
-  
-      // display search user in flat list
-  render(){
+
+  // display search user in flat list
+  render() {
     const navigation = this.props.navigation;
-    if(this.state.isLoading){
-      return(
+    if (this.state.isLoading) {
+      return (
         <View>
           <ActivityIndicator />
         </View>
       );
     }
-    else{
-      return(
+    else {
+      return (
         <View style={styles.container}>
-          <TouchableOpacity 
-            style={styles.searchButton} 
+          <TouchableOpacity
+            style={styles.searchButton}
             onPress={() => navigation.navigate("SearchContact")}>
-              <Text> Click here to search</Text>
-            </TouchableOpacity>
-  
-            <FlatList
+            <Text> Click here to search</Text>
+          </TouchableOpacity>
+
+          <FlatList
             data={this.state.userData}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <View>
                 <View style={styles.contactsView}>
                   <View>
@@ -129,7 +129,7 @@ class Contacts extends Component{
                 <View style={styles.separator} />
               </View>
             )}
-            keyExtractor={({user_id}, index) => user_id}
+            keyExtractor={({ user_id }, index) => user_id}
           />
         </View>
       );
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     whiteSpace: 'nowrap', // prevent wrapping of text
     textOverflow: 'ellipsis', // show ellipsis (...) for truncated text
   },
-  buttonView:{
+  buttonView: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 35
   },
-  blockButton:{
+  blockButton: {
     backgroundColor: '#DB56EB',
     padding: 7.5,
     marginLeft: 7.5,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    
+
   },
   separator: {
     borderBottomColor: 'gray',
