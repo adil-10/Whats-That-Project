@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator} from 'react-native';
+import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-class SearchContact extends Component{
+import { Ionicons } from '@expo/vector-icons';
+class SearchContact extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -15,7 +15,8 @@ class SearchContact extends Component{
       offset: 0,
       accountFound: null,
       user_id: '',
-      userData: []
+      userData: [],
+      Message: ''
     };
   }
 
@@ -43,86 +44,95 @@ class SearchContact extends Component{
       });
     }
     catch (error) {
-    console.log(error);
+      console.log(error);
     }
   };
-        
-        
+
+
   addContact = async (user_id) => {
     let toSend = {
       user_id: user_id,
     };
-  
-    return fetch("http://127.0.0.1:3333/api/1.0.0/user/"  + user_id + "/contact" ,{
+
+    return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/contact", {
       method: 'POST',
       headers: {
-        'Content-Type' : 'application/json',
+        'Content-Type': 'application/json',
         'X-Authorization': await AsyncStorage.getItem('@session_token')
       },
       body: JSON.stringify(toSend)
     })
-    .then(async (response) => {
-      console.log('user added');
-    })
-    .catch((error) => {
-      console.log('error:', error);
-    })
+      .then(async (response) => {
+        this.SearchUser();
+      })
+      .then(async (response) => {
+        console.log('user added');
+        this.setState({ Message: "user added" });
+      })
+      .catch((error) => {
+        console.log('error:', error);
+      })
   }
-  
 
-  
-      // display search user in flat list
-  render(){
-    if(this.state.isLoading){
-      return(
+
+
+  render() {
+    if (this.state.isLoading) {
+      return (
         <View>
           <ActivityIndicator />
         </View>
       );
     }
-    else{
-      return(
+    else {
+      return (
         <View style={styles.container}>
+          <View style={styles.Iconleft}>
+            <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
           <View style={styles.inputContainer}>
             <TextInput
-                style={styles.inputBox}
-                placeholder="Enter email"
-                placeholderTextColor="gray"
-                onChangeText={(text) => this.setState({ search: text })}/>
+              style={styles.inputBox}
+              placeholder="Enter email"
+              placeholderTextColor="gray"
+              onChangeText={(text) => this.setState({ search: text })} />
 
-            <TouchableOpacity 
-                style={styles.searchButton} 
-                onPress={() => this.SearchUser()}>
-                <Text> Search</Text>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={() => this.SearchUser()}>
+              <Text> Search</Text>
             </TouchableOpacity>
           </View>
 
-          <FlatList
-          data={this.state.userData}
-          renderItem={({item}) =>(
+          {this.state.Message ? <Text>{this.state.Message}</Text> : null}
 
-            <View>
+          <FlatList
+            data={this.state.userData}
+            renderItem={({ item }) => (
+
+              <View>
                 <View style={styles.contactsView}>
-                    <View>
+                  <View>
                     <Text style={styles.textView}>{item.given_name} {item.family_name}</Text>
                     <Text style={styles.textView}>{item.email}</Text>
-                    </View>
-                    <TouchableOpacity
-                        style={styles.addButton}
-                        onPress={() => this.addContact(item.user_id)}>
-                        <Text>Add</Text>
-                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => this.addContact(item.user_id)}>
+                    <Text>Add</Text>
+                  </TouchableOpacity>
                 </View>
-            </View>
-          )}
-          keyExtractor={({user_id}, index) => user_id}
+              </View>
+            )}
+            keyExtractor={({ user_id }, index) => user_id}
           />
         </View>
       );
     }
   }
 }
-
 export default SearchContact;
 
 const styles = StyleSheet.create({
@@ -134,6 +144,13 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingTop: 20,
     paddingHorizontal: 10,
+  },
+  Iconleft: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    marginLeft: 15,
+    marginTop: 10,
   },
   //search box
   inputContainer: {
@@ -169,7 +186,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: 'black',
   },
-// contacts
+  // contacts
   contactsView: {
     borderBottomColor: 'gray',
     borderBottomWidth: 1,
@@ -199,5 +216,5 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     backgroundColor: '#72F3A6'
   },
-  
+
 });

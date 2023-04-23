@@ -4,7 +4,7 @@ import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } fr
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-class Login extends Component {
+export default class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -78,7 +78,7 @@ class Login extends Component {
       .then(async (response) => {
         const responseJson = await response.json();
         console.log(responseJson)
-        await AsyncStorage.setItem('@user_id', responseJson.id)
+        await AsyncStorage.setItem('@user_id', responseJson.id);
         await AsyncStorage.setItem('@session_token', responseJson.token);
         this.props.navigation.navigate('HomePage')
       })
@@ -132,8 +132,6 @@ class Login extends Component {
     );
   }
 }
-
-export default Login
 
 const styles = StyleSheet.create({
   container: {

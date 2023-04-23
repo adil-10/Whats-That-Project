@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator} from 'react-native';
+import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-class BlockedContacts extends Component {
+import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
+export default class BlockedContacts extends Component {
 
 
   constructor(props) {
@@ -31,70 +31,77 @@ class BlockedContacts extends Component {
         isLoading: false,
         userData: json,
       });
-    } 
+    }
     catch (error) {
       console.log(error);
     }
   };
 
+  componentWillUnmount() {
+    console.log("HomePage unmounted");
+    this.displayContacts();
+  }
   componentDidMount() {
     this.displayContacts();
   }
 
   unBlock = async (user_id) => {
-    return fetch ("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block",{
+    return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block", {
       method: 'DELETE',
       headers: {
-        'Content-Type' : 'application/json',
+        'Content-Type': 'application/json',
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
-    .then((response) =>{
-      this.displayContacts();
-    })
-    .then((response) =>{
-      console.log("user unblocked");
-    })
-    .catch((error) =>{
-      console.log(error);
-    })
+      .then((response) => {
+        this.displayContacts();
+      })
+      .then((response) => {
+        console.log("user unblocked");
+      })
+      .catch((error) => {
+        console.log(error);
+      })
   }
 
-render() {
-  if(this.state.isLoading){
-    return(
-      <View>
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  render() {
+    if (this.state.isLoading) {
+      return (
+        <View>
+          <ActivityIndicator />
+        </View>
+      );
+    }
     return (
       <View style={styles.container}>
         <FlatList
           data={this.state.userData}
-          renderItem={({item}) =>(
-            <View>
+          renderItem={({ item }) => (
             <View style={styles.contactsView}>
-                <View>
-                <Text style={styles.textView} >{item.first_name} {item.last_name}</Text>
+              <View>
+                <Text style={styles.textView}>{item.first_name} {item.last_name}</Text>
                 <Text style={styles.textView}>{item.email}</Text>
-                </View>
-                <TouchableOpacity
-                style={styles.blockButton}
-                onPress={() =>this.unBlock(item.user_id)}>
-                  <Text>UnBlock</Text>
-                </TouchableOpacity>
+              </View>
+              <View style={styles.Icon}>
+                <MenuProvider style={{ flexDirection: 'column', padding: 14, justifyContent: 'flex-end' }}>
+                  <Menu>
+                    <MenuTrigger text='...' customStyles={{ triggerText: { fontSize: 20, fontWeight: 'bold' } }} />
+                    <MenuOptions>
+                      <MenuOption onSelect={() => this.unBlock(item.user_id)} text='UnBlock' />
+                    </MenuOptions>
+                  </Menu>
+                </MenuProvider>
               </View>
             </View>
           )}
-          keyExtractor={({user_id}, index) => user_id}
-          />
+          keyExtractor={({ user_id }, index) => user_id
+          }
+        />
       </View>
     );
   }
 }
 
-export default BlockedContacts;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -105,7 +112,11 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 10,
   },
-
+  Icon: {
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 10
+  },
   contactsView: {
     borderBottomColor: 'gray',
     borderBottomWidth: 1,
@@ -124,7 +135,7 @@ const styles = StyleSheet.create({
     whiteSpace: 'nowrap', // prevent wrapping of text
     textOverflow: 'ellipsis', // show ellipsis (...) for truncated text
   },
-  blockButton:{
+  blockButton: {
     width: '20%',
     textAlign: 'center',
     marginVertical: 5,

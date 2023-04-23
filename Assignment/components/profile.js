@@ -3,9 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import CameraTakePicture from './components/camera-takephoto';
 
-class Profile extends Component {
+export default class Profile extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -152,7 +151,7 @@ class Profile extends Component {
 }
 
 
-export default Profile;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -188,3 +187,4 @@ const styles = StyleSheet.create({
     borderColor: 'black',
   }
 })
+//isfocuseffect

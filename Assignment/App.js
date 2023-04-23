@@ -15,6 +15,7 @@ import ChangePass from './components/changePass';
 import BlockedContacts from './components/blockedContacts';
 import SearchContact from './components/searchContact';
 import NewChat from './components/newChat';
+import Chat from './components/chat';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -46,12 +47,13 @@ export default class App extends Component {
     return (
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name='Login' component={Login} options={{ headerShown: true }} />
-          <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: true }} />
-          <Stack.Screen name='ChangePass' component={ChangePass} options={{ headerShown: true }} />
-          <Stack.Screen name='SearchContact' component={SearchContact} options={{ headerShown: true }} />
-          <Stack.Screen name='NewChat' component={NewChat} options={{ headerShown: true }} />
-          <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: true }} />
+          <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
+          <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: false }} />
+          <Stack.Screen name='ChangePass' component={ChangePass} options={{ headerShown: false }} />
+          <Stack.Screen name='SearchContact' component={SearchContact} options={{ headerShown: false }} />
+          <Stack.Screen name='NewChat' component={NewChat} options={{ headerShown: false }} />
+          <Stack.Screen name='Chat' component={Chat} options={{ headerShown: false }} />
+          <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     )

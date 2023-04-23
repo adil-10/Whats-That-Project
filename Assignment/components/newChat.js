@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
-
-class NewChat extends Component {
+import { Ionicons } from '@expo/vector-icons';
+export default class NewChat extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -15,12 +12,12 @@ class NewChat extends Component {
     }
 
     startChat = async () => {
+        const navigation = this.props.navigation;
 
         let toSend = {
             name: this.state.name,
         };
 
-        console.log("HERE", toSend)
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat", {
             method: 'POST',
             headers: {
@@ -32,9 +29,7 @@ class NewChat extends Component {
             .then(async (response) => {
                 const responseJson = await response.json();
                 console.log(responseJson)
-                await AsyncStorage.setItem('@chat_id', responseJson.chat_id)
-
-
+                navigation.navigate('HomePage')
             })
             .catch((error) => {
                 console.log(error);
@@ -42,32 +37,31 @@ class NewChat extends Component {
             })
     }
 
-
-
-
-
-
     render() {
         return (
             <View style={styles.container}>
-                <Text>Enter The Chat Name</Text>
-                <TextInput style={styles.chatStyle}
-                    placeholder=""
+                <View style={styles.Iconleft}>
+                    <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+                        <Ionicons name="arrow-back" size={24} color="black" />
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={styles.heading}>Enter the chat name:</Text>
+                <TextInput
+                    style={styles.chatStyle}
+                    placeholder="Chat name"
                     onChangeText={name => this.setState({ name })}
                     value={this.state.name}
                     placeholderTextColor="gray"
                 />
-
-                <TouchableOpacity
-                    onPress={this.startChat}>
-                    <Text>start chat</Text>
+                <TouchableOpacity style={styles.button} onPress={this.startChat}>
+                    <Text style={styles.buttonText}>Start Chat</Text>
                 </TouchableOpacity>
             </View>
         );
     }
 }
 
-export default NewChat;
 
 const styles = StyleSheet.create({
     container: {
@@ -76,17 +70,39 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        paddingTop: 20,
-        paddingHorizontal: 20,
+        // borderRadius: 10,
+        // borderWidth: 1,
+    },
+    Iconleft: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        marginLeft: 15,
+        marginTop: 10,
+    },
+    heading: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
     },
     chatStyle: {
         borderWidth: 1,
         borderColor: 'gray',
-        width: '100%',
+        width: '70%',
         height: 50,
-        marginVertical: '2%',
         paddingHorizontal: 5,
         color: 'black',
+        marginBottom: 20,
     },
-
-})
+    button: {
+        backgroundColor: '#c8ada4',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+});

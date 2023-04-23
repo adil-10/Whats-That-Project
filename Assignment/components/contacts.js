@@ -3,17 +3,13 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
-class Contacts extends Component {
+export default class Contacts extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isLoading: true,
-      search: '',
-      search_in: 'all',
-      limit: 20,
-      offset: 0,
-      accountFound: null,
       user_id: '',
       userData: []
     };
@@ -38,7 +34,10 @@ class Contacts extends Component {
       console.log(error);
     }
   };
-
+  componentWillUnmount() {
+    console.log("HomePage unmounted");
+    this.displayContacts();
+  }
   componentDidMount() {
     this.displayContacts();
   }
@@ -111,20 +110,16 @@ class Contacts extends Component {
                     <Text style={styles.textView}>{item.email}</Text>
                   </View>
 
-                  <View style={styles.buttonView}>
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => this.deleteContact(item.user_id)}>
-                      <Text>Delete</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.blockButton}
-                      onPress={() => this.blockUser(item.user_id)}>
-                      <Text>Block</Text>
-                    </TouchableOpacity>
+                  <View style={styles.Icon}>
+                    <MenuProvider style={{ flexDirection: 'column', padding: 14 }}>
+                      <Menu>
+                        <MenuTrigger text='...' customStyles={{ triggerText: { fontSize: 20, fontWeight: 'bold' } }} />                                <MenuOptions>
+                          <MenuOption onSelect={() => this.deleteContact(item.user_id)} text='Delete' />
+                          <MenuOption onSelect={() => this.blockUser(item.user_id)} text='Block' />
+                        </MenuOptions>
+                      </Menu>
+                    </MenuProvider>
                   </View>
-
                 </View>
                 <View style={styles.separator} />
               </View>
@@ -137,7 +132,6 @@ class Contacts extends Component {
   }
 }
 
-export default Contacts;
 
 const styles = StyleSheet.create({
   container: {
@@ -148,6 +142,10 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingTop: 20,
     paddingHorizontal: 10,
+  },
+  Icon: {
+    right: 0,
+    marginRight: 10
   },
   searchButton: {
     marginBottom: 20,
