@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+
 class SearchContact extends Component {
   constructor(props) {
     super(props);

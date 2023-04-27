@@ -55,7 +55,7 @@ export default class HomePage extends Component {
         isLoading: false,
         userData: json,
       });
-      console.log(this.state.userData)
+      // console.log(this.state.userData)
     }
     catch (error) {
       console.log(error);
@@ -159,82 +159,3 @@ const styles = StyleSheet.create({
 
 // // sort out when a new chat is made it instantly gets added
 // // styling needs sorting
-
-// import React, { Component } from 'react';
-// import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
-
-// export default class HomePage extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       chats: [
-//         {
-//           name: 'John Doe',
-//           lastMessage: 'Hey, what\'s up?',
-//           time: '10:30 AM',
-
-//         },
-//         {
-//           name: 'Jane Smith',
-//           lastMessage: 'Can you send me that document?',
-//           time: '9:15 AM',
-
-//         },
-//         // Add more chat objects here...
-//       ],
-//     };
-//   }
-
-//   renderChatItem = ({ item }) => {
-//     return (
-//       <TouchableOpacity style={styles.chatItem} onPress={() => this.props.navigation.navigate('Chat', { chat: item })}>
-
-//         <View style={styles.chatDetails}>
-//           <Text style={styles.name}>{item.name}</Text>
-//           <Text style={styles.lastMessage}>{item.lastMessage}</Text>
-//         </View>
-//         <Text style={styles.time}>{item.time}</Text>
-//       </TouchableOpacity>
-//     );
-//   };
-
-//   render() {
-//     return (
-//       <View style={styles.container}>
-//         <FlatList
-//           data={this.state.chats}
-//           renderItem={this.renderChatItem}
-//           keyExtractor={(item, index) => index.toString()}
-//         />
-//       </View>
-//     );
-//   }
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   chatItem: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     paddingHorizontal: 16,
-//     paddingVertical: 8,
-//   },
-//   chatDetails: {
-//     flex: 1,
-//     justifyContent: 'center',
-//   },
-//   name: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//     marginBottom: 4,
-//   },
-
-//   time: {
-//     fontSize: 12,
-//     color: '#999',
-//     marginLeft: 8,
-//   },
-// });

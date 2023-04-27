@@ -3,7 +3,7 @@ import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, Fla
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import moment from "moment";
+
 export default class Chat extends Component {
     constructor(props) {
         super(props);
@@ -17,9 +17,16 @@ export default class Chat extends Component {
             offset: 0,
             message: '',
             chatData: [],
+            expandedMessageId: null,
+            selectedMessageId: null,
+            editText: '',
+            expanded: false,
         };
         this.sendText = this.sendText.bind(this);
     }
+
+
+
 
     getChat = async () => {
         try {
@@ -47,13 +54,15 @@ export default class Chat extends Component {
             console.log(error);
         }
     };
+
+
     componentDidMount() {
         this.getChat();
     }
 
 
     // update user info
-    updateChat = async () => {
+    updateChatinfo = async () => {
         const item = this.props.route.params;
 
         let toSend = {
@@ -137,22 +146,79 @@ export default class Chat extends Component {
             })
     }
 
+    deleteChat = async (message_id) => {
+        const item = this.props.route.params;
+        console.log(message_id)
+        const { chatData } = this.state;
+
+        return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/message/" + message_id, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Authorization': await AsyncStorage.getItem('@session_token'),
+            },
+        })
+            .then((response) => {
+                console.log("chat deleted");
+                this.getChat();
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+
+    // update user info
+    updateChat = async (message_id) => {
+        console.log(this.state.message)
+        const item = this.props.route.params;
+        const message = this.state.message;
+        const { chatData } = this.state;
+        let toSend = {
+            message: this.state.message,
+        };
+
+        return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/message/" + message_id, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Authorization': await AsyncStorage.getItem('@session_token')
+            },
+            body: JSON.stringify(toSend)
+        })
+            .then((response) => {
+                console.log('chat updated')
+                this.getChat();
+                console.log(message)
+            })
+
+            .catch((error) => {
+                console.log(error)
+            })
+    }
+
+    toggleExpanded(messageId) {
+        const { chatData } = this.state;
+        const index = chatData.messages.findIndex((item) => item.message_id === messageId);
+        chatData.messages[index].editable = !chatData.messages[index].editable;
+        this.setState({ chatData, expanded: !this.state.expanded });
+    }
+
+
 
     render() {
         const navigation = this.props.navigation;
         const { modalVisible } = this.state;
 
         const { route } = this.props;
+        const { expanded } = this.state;
         const chatName = route.params.chatName;
         const item = this.props.route.params;
 
 
-        const { chatData, user_id } = this.state;
+        const { chatData } = this.state;
 
         return (
             <View style={styles.container}>
-
-
 
                 <View style={styles.header}>
                     <Text style={styles.headerText}>{item.item.name}</Text>
@@ -173,28 +239,67 @@ export default class Chat extends Component {
                 <View style={styles.chatContainer}>
 
                     <FlatList
+                        inverted
                         data={chatData.messages}
                         renderItem={({ item }) => {
                             const { userId } = this.state;
                             const sender = item.author.user_id;
-                            console.log(userId);
+
                             const isSentByCurrentUser = parseInt(sender) === parseInt(userId);
                             const messageStyle = isSentByCurrentUser ? styles.rightMessage : styles.leftMessage;
 
-                            // console.log(isSentByCurrentUser)
-                            // console.log(sender)
+                            const editText = item.message;
 
-                            console.log(item.message + ' ' + userId)
                             return (
-                                <View style={[styles.messageContainer, messageStyle]}>
-                                    <Text style={styles.messageText}>
-                                        {item.message}
-                                    </Text>
+                                <View>
+                                    {!expanded ? (
+                                        <TouchableOpacity onPress={() => this.toggleExpanded(item.message_id)}>
+                                            <View style={[styles.messageContainer, messageStyle]}>
+                                                <Text style={styles.messageText}>{editText}</Text>
+                                                <View style={styles.stampStyle}>
+                                                    <Text style={styles.authorText}>
+                                                        {item.author.first_name} {item.author.last_name}
+                                                    </Text>
+                                                    <Text style={styles.expandButton}>
+                                                        {expanded ? '' : ''}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <View style={[styles.messageContainer, messageStyle]}>
+                                            <TextInput
+                                                style={styles.messageText}
+                                                placeholder={editText}
+                                                onChangeText={(text) => this.setState({ message: text })}
+                                            />
+                                            <View style={styles.stampStyle}>
+                                                <Text style={styles.authorText}>
+                                                    {item.author.first_name} {item.author.last_name}
+                                                </Text>
+                                                <Text style={styles.expandButton}>
+                                                    {expanded ? '' : ''}
+                                                </Text>
+                                            </View>
+                                            <View>
+                                                <TouchableOpacity onPress={() => this.updateChat(item.message_id, this.state.editText)}>
+                                                    <Text>Save</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => this.deleteChat(item.message_id)}>
+                                                    <Text>Delete</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    )}
                                 </View>
                             );
+
+
                         }}
                         keyExtractor={(item) => item.message_id.toString()}
                     />
+
+
 
                     <View style={styles.inputContainer}>
                         <TextInput
@@ -207,6 +312,8 @@ export default class Chat extends Component {
                         </TouchableOpacity>
                     </View>
                 </View>
+
+
 
                 {/* model View */}
                 <View style={styles.centeredView}>
@@ -224,7 +331,7 @@ export default class Chat extends Component {
                                     placeholder={chatName}
                                     placeholderTextColor="gray"
                                     onChangeText={name => this.setState({ name })} />
-                                <TouchableOpacity style={styles.button} onPress={this.updateChat}>
+                                <TouchableOpacity style={styles.button} onPress={this.updateChatinfo}>
                                     <Text style={styles.buttonText}>Save changes</Text>
                                 </TouchableOpacity>
 
@@ -262,7 +369,6 @@ export default class Chat extends Component {
                                     onPress={() => this.setState({ modalVisible: !modalVisible })}>
                                     <Text style={styles.textStyle}>Done</Text>
                                 </Pressable>
-
                             </View>
                         </View>
                     </Modal>
@@ -338,7 +444,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         backgroundColor: '#128c7f',
         borderRadius: 20,
-        alignSelf: 'flex-end', // added to move button to the right side
+        alignSelf: 'flex-end',
     },
     sendButtonText: {
         color: 'white',
@@ -349,7 +455,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         maxWidth: '80%',
-        marginBottom: 4, // added to create space between chat bubbles
+        marginBottom: 4,
     },
     leftBubble: {
         backgroundColor: '#dcf8c6',
@@ -406,7 +512,7 @@ const styles = StyleSheet.create({
         maxWidth: '80%',
     },
     messageText: {
-        fontSize: 16,
+        fontSize: 20,
     },
     leftMessage: {
         alignSelf: 'flex-start',
@@ -415,6 +521,13 @@ const styles = StyleSheet.create({
     rightMessage: {
         alignSelf: 'flex-end',
         backgroundColor: '#DCF8C5',
+    },
+    stampStyle: {
+        alignSelf: 'flex-end',
+    },
+    authorText: {
+        fontSize: 13,
+        color: 'grey',
     },
 });
 
