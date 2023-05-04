@@ -86,11 +86,16 @@ class SearchContact extends Component {
     else {
       return (
         <View style={styles.container}>
-          <View style={styles.Iconleft}>
-            <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
+
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Whats That</Text>
+            <View style={styles.Iconleft}>
+              <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+                <Ionicons name="arrow-back" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
           </View>
+
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.inputBox}
@@ -141,8 +146,21 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     width: '100%',
-    paddingTop: 20,
-    paddingHorizontal: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#075e54',
+    width: '100%'
+  },
+  headerText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 30,
   },
   Iconleft: {
     position: 'absolute',
@@ -158,7 +176,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     marginVertical: 10,
-    paddingHorizontal: 5,
+    paddingTop: 5,
+    paddingBottom: 5,
+    // paddingHorizontal: 5,
+    paddingVertical: 20,
   },
   inputBox: {
     borderWidth: 1,

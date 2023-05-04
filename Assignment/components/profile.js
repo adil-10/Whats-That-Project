@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import DisplayImage from '../MAD_2223_Hardware-master/src/views/display';
 export default class Profile extends Component {
   constructor(props) {
     super(props);
@@ -38,6 +37,27 @@ export default class Profile extends Component {
       console.log(error);
     }
   };
+
+  // getImage = async () => {
+  //   try {
+  //     const userId = await AsyncStorage.getItem('@user_id');
+
+  //     let response = await fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId + "/photo", {
+  //       method: 'GET',
+  //       headers: {
+  //         'X-Authorization': await AsyncStorage.getItem('@session_token'),
+  //       },
+  //     });
+  //     let json = await response.json();
+  //     this.setState({
+  //       user_id: userId,
+  //     });
+  //   }
+  //   catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
 
   componentDidMount() {
     this.getData();
@@ -104,47 +124,52 @@ export default class Profile extends Component {
     const navigation = this.props.navigation;
     return (
       <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Whats That</Text>
+        </View>
 
-        {/* <TouchableOpacity style={styles.buttonDesign} onPress={() => CameraTakePicture()}>
-          <CameraTakePicture />
-        </TouchableOpacity> */}
+        <View style={styles.container2}>
 
-        <TextInput
-          style={styles.inputBox}
-          placeholder="First Name"
-          placeholderTextColor="gray"
-          onChangeText={(text) => this.setState({ first_name: text })}
-          value={this.state.first_name}
-        />
+          <TouchableOpacity style={styles.profileImage} onPress={() => this.props.navigation.navigate("CameraSendToServer")}>
+            <DisplayImage />
+          </TouchableOpacity>
 
-        <TextInput
-          style={styles.inputBox}
-          placeholder="Last Name"
-          placeholderTextColor="gray"
-          onChangeText={(text) => this.setState({ last_name: text })}
-          value={this.state.last_name}
-        />
+          <TextInput
+            style={styles.inputBox}
+            placeholder="First Name"
+            placeholderTextColor="gray"
+            onChangeText={(text) => this.setState({ first_name: text })}
+            value={this.state.first_name}
+          />
 
-        <TextInput style={styles.inputBox}
-          placeholder="Email"
-          placeholderTextColor="gray"
-          onChangeText={(text) => this.setState({ email: text })}
-          value={this.state.email}
-        />
+          <TextInput
+            style={styles.inputBox}
+            placeholder="Last Name"
+            placeholderTextColor="gray"
+            onChangeText={(text) => this.setState({ last_name: text })}
+            value={this.state.last_name}
+          />
 
-        <TouchableOpacity style={styles.buttonDesign} onPress={() => this.updateUser()}>
-          <Text>Update</Text>
-        </TouchableOpacity>
+          <TextInput style={styles.inputBox}
+            placeholder="Email"
+            placeholderTextColor="gray"
+            onChangeText={(text) => this.setState({ email: text })}
+            value={this.state.email}
+          />
 
-        <TouchableOpacity style={styles.buttonDesign} onPress={() => navigation.navigate('ChangePass')}>
-          <Text>Change Password</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonDesign} onPress={() => this.updateUser()}>
+            <Text>Update</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
-          <Text>Logout</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonDesign} onPress={() => navigation.navigate('ChangePass')}>
+            <Text>Change Password</Text>
+          </TouchableOpacity>
 
+          <TouchableOpacity style={styles.buttonDesign} onPress={() => this.logout()}>
+            <Text>Logout</Text>
+          </TouchableOpacity>
 
+        </View>
       </View>
     );
   }
@@ -157,11 +182,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    width: '100%',
+  },
+  container2: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    paddingTop: 20,
-    paddingHorizontal: 20,
+    marginTop: 40
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#075e54',
+  },
+  headerText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 30,
   },
   inputBox: {
     borderWidth: 1,
@@ -174,7 +214,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     justifyContent: 'center',
   },
+  profileImage: {
+    profileImage: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: 'white',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'black',
+      overflow: 'hidden', // this is important to clip the image to the circle
+    },
 
+  },
   buttonDesign: {
     marginVertical: 10,
     padding: 10,

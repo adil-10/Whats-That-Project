@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
@@ -62,82 +62,70 @@ export default class HomePage extends Component {
     }
   };
 
-  renderSeparator = () => {
-    return (
-      <View style={styles.separator} />
-    );
-  };
-
   render() {
     const navigation = this.props.navigation;
     return (
       <View style={styles.container}>
-
-        <View style={styles.Icon}>
-          <MenuProvider style={{ flexDirection: 'column', padding: 25 }}>
-            <Menu>
-              <MenuTrigger text='...' customStyles={{ triggerText: { fontSize: 20, fontWeight: 'bold' } }} />                                <MenuOptions>
-                <MenuOption onSelect={() => navigation.navigate('NewChat')} text='New Chat' />
-              </MenuOptions>
-            </Menu>
-          </MenuProvider>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Whats That</Text>
         </View>
-
-
         <View style={styles.chatView}>
-
           <FlatList
             data={this.state.userData}
             renderItem={({ item }) => (
-
-
               <View style={styles.contactsView}>
                 <TouchableOpacity onPress={() => this.props.navigation.navigate('Chat', { item: item })}>
                   <Text style={styles.name}>{item.name}</Text>
                   <Text style={styles.lastMessage}>{item.last_message.message}</Text>
                 </TouchableOpacity>
               </View>
-
             )}
             keyExtractor={({ chat_id }, index) => chat_id}
           />
         </View>
-      </View >
+        <View style={styles.addStyleContainer}>
+          <TouchableOpacity style={styles.addStyle} onPress={() => navigation.navigate('NewChat')}>
+            <Image style={styles.imageStyle} source={{ uri: "https://cdn-icons-png.flaticon.com/512/14/14558.png" }} />
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   }
 }
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
     width: '100%',
-    paddingTop: 20,
-    paddingHorizontal: 20,
   },
-  Icon: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    marginRight: 10
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#075e54',
+  },
+  headerText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 30,
   },
   contactsView: {
-    paddingTop: 20,
-
-    width: 370,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomColor: 'gray',
+    borderBottomWidth: 1,
+    marginBottom: 10,
+    paddingBottom: 5,
+    paddingLeft: 8,
+    width: '100%',
   },
   chatView: {
-    marginTop: 40,
-  },
-  textView: {
-    fontSize: 20,
-    maxWidth: '100%',
+    marginTop: 15,
   },
   name: {
     fontSize: 16,
@@ -148,14 +136,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  separator: {
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-    marginBottom: 10,
-    paddingTop: 5,
-    width: '100%',
+  addStyleContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 1,
   },
-})
+  addStyle: {},
+  imageStyle: {
+    width: 50,
+    height: 50,
+  },
+});
+
 
 // // sort out when a new chat is made it instantly gets added
 // // styling needs sorting

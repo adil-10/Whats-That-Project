@@ -21,7 +21,7 @@ class SignUp extends Component {
     const isValid = this.validData(); // validate the input data
     if (isValid) {
       if (this.addUser())
-        navigation.navigate('Login');
+        this.props.navigation.navigate('Login');
     }
   }
 

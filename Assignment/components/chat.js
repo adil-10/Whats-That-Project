@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Modal, Pressable } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
 export default class Chat extends Component {
     constructor(props) {
@@ -17,6 +17,7 @@ export default class Chat extends Component {
             offset: 0,
             message: '',
             chatData: [],
+            userData: [],
             expandedMessageId: null,
             selectedMessageId: null,
             editText: '',
@@ -24,9 +25,6 @@ export default class Chat extends Component {
         };
         this.sendText = this.sendText.bind(this);
     }
-
-
-
 
     getChat = async () => {
         try {
@@ -55,11 +53,10 @@ export default class Chat extends Component {
         }
     };
 
-
     componentDidMount() {
         this.getChat();
+        this.displayContacts();
     }
-
 
     // update user info
     updateChatinfo = async () => {
@@ -196,6 +193,26 @@ export default class Chat extends Component {
             })
     }
 
+    //display user data
+    displayContacts = async () => {
+        try {
+            let response = await fetch("http://127.0.0.1:3333/api/1.0.0/contacts", {
+                method: 'GET',
+                headers: {
+                    'X-Authorization': await AsyncStorage.getItem('@session_token'),
+                },
+            });
+            let json = await response.json();
+            this.setState({
+                isLoading: false,
+                userData: json,
+            });
+        }
+        catch (error) {
+            console.log(error);
+        }
+    };
+
     toggleExpanded(messageId) {
         const { chatData } = this.state;
         const index = chatData.messages.findIndex((item) => item.message_id === messageId);
@@ -213,7 +230,6 @@ export default class Chat extends Component {
         const { expanded } = this.state;
         const chatName = route.params.chatName;
         const item = this.props.route.params;
-
 
         const { chatData } = this.state;
 
@@ -299,8 +315,6 @@ export default class Chat extends Component {
                         keyExtractor={(item) => item.message_id.toString()}
                     />
 
-
-
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.messageInput}
@@ -313,8 +327,6 @@ export default class Chat extends Component {
                     </View>
                 </View>
 
-
-
                 {/* model View */}
                 <View style={styles.centeredView}>
                     <Modal
@@ -324,42 +336,57 @@ export default class Chat extends Component {
                         onRequestClose={() => {
                             this.setState({ modalVisible: !modalVisible });
                         }}>
-                        <View style={styles.centeredView}>
+                        <View style={[styles.centeredView, { flex: 1 }]}>
+
                             <View style={styles.modalView}>
-
-                                <TextInput
-                                    placeholder={chatName}
-                                    placeholderTextColor="gray"
-                                    onChangeText={name => this.setState({ name })} />
-                                <TouchableOpacity style={styles.button} onPress={this.updateChatinfo}>
-                                    <Text style={styles.buttonText}>Save changes</Text>
-                                </TouchableOpacity>
-
-                                <TextInput
-                                    placeholder='Search for user'
-                                    placeholderTextColor="gray"
-                                    onChangeText={user_id => this.setState({ user_id })} />
-
-                                <TouchableOpacity style={styles.button} onPress={() => this.addContact(this.state.user_id)}>
-                                    <Text style={styles.buttonText}>Add Contact</Text>
-                                </TouchableOpacity>
-
-                                <TextInput
-                                    placeholder='Search for user to remove'
-                                    placeholderTextColor="gray"
-                                    onChangeText={user_id => this.setState({ user_id })} />
-
-                                <TouchableOpacity style={styles.button} onPress={() => this.removeContact(this.state.user_id)}>
-                                    <Text style={styles.buttonText}>remove Contact</Text>
-                                </TouchableOpacity>
+                                <View style={styles.inputViewContainer}>
+                                    <TextInput
+                                        style={styles.modelViewText}
+                                        placeholder={item.item.name}
+                                        placeholderTextColor="gray"
+                                        onChangeText={name => this.setState({ name })} />
+                                    <TouchableOpacity style={styles.saveButton} onPress={this.updateChatinfo}>
+                                        <Text style={styles.buttonText}>Save changes</Text>
+                                    </TouchableOpacity>
+                                </View>
 
 
+                                {/* display contacts */}
+                                <Text style={{ fontSize: 20 }} >Contacts</Text>
+                                <FlatList
+                                    data={this.state.userData}
+                                    renderItem={({ item }) => {
+                                        console.log(item)
+                                        return (
+                                            <View>
+                                                <View style={styles.contactsView}>
+                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+                                                        <Text style={styles.ContactsText}>{item.first_name} {item.last_name}</Text>
+                                                        <TouchableOpacity style={styles.addButton} onPress={() => this.addContact(item.user_id)}>
+                                                            <MaterialIcons name="add" size={24} color="black" />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
+
+                                            </View>
+                                        );
+                                    }}
+                                    keyExtractor={({ user_id }, index) => user_id}
+                                />
+
+                                <View style={{ marginBottom: 5 }} />
+                                <Text style={{ fontSize: 20 }}>Existing Users</Text>
                                 <FlatList
                                     data={this.state.chatData.members}
                                     renderItem={({ item }) => (
-                                        <View>
-                                            <Text>{item.first_name} {item.last_name}</Text>
+
+                                        <View style={styles.existingContactsContainer}>
+                                            <Text style={styles.existingContactsText}>{item.first_name} {item.last_name}</Text>
+                                            <TouchableOpacity style={styles.trashButton} onPress={() => this.removeContact(item.user_id)}>
+                                                <FontAwesome name="trash-o" size={24} color="black" />
+                                            </TouchableOpacity>
                                         </View>
+
                                     )}
                                     keyExtractor={(item, index) => index.toString()}
                                 />
@@ -411,7 +438,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         marginLeft: 30,
-
     },
     chatContainer: {
         flex: 1,
@@ -424,7 +450,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 8,
         backgroundColor: 'white',
         borderTopWidth: 1,
         borderTopColor: '#e0e0e0',
@@ -466,14 +491,19 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',
     },
     centeredView: {
-        justifyContent: 'center',
-        alignitems: 'stretch',
+        centeredView: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
     },
     modalView: {
+        flex: 1,
         margin: 20,
         backgroundColor: 'white',
         borderRadius: 20,
-        padding: 35,
+        paddingTop: 35,
+        // padding: 35,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -494,6 +524,19 @@ const styles = StyleSheet.create({
     },
     buttonClose: {
         backgroundColor: '#2196F3',
+    },
+    saveButton: {
+        alignSelf: 'center',
+        borderRadius: 5,
+        borderWidth: 1,
+        padding: 10,
+        marginTop: 10,
+    },
+    buttonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'Black',
+        textAlign: 'center',
     },
     textStyle: {
         color: 'white',
@@ -529,6 +572,40 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: 'grey',
     },
+    modelViewText: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+    },
+    contactsView: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 5,
+
+    },
+    ContactsText: {
+        flex: 1,
+        fontSize: 16,
+    },
+    addButton: {
+        marginLeft: 10,
+    },
+
+    existingContactsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 5,
+    },
+    existingContactsText: {
+        flex: 1,
+        fontSize: 16,
+    },
+    trashButton: {
+        marginLeft: 10,
+    },
+    inputViewContainer: {
+        padding: 10
+    },
+
 });
 
 // sort chat out, able to see chat but need to sort it foir when another user sends you a message

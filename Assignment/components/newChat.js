@@ -40,38 +40,56 @@ export default class NewChat extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <View style={styles.Iconleft}>
-                    <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color="black" />
+
+                <View style={styles.header}>
+                    <Text style={styles.headerText}>Whats That</Text>
+
+
+                    <View style={styles.Iconleft}>
+                        <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={styles.newChatContainer}>
+                    <Text style={styles.heading}>Enter the chat name:</Text>
+                    <TextInput
+                        style={styles.chatStyle}
+                        placeholder="Chat name"
+                        onChangeText={name => this.setState({ name })}
+                        value={this.state.name}
+                        placeholderTextColor="gray"
+                    />
+                    <TouchableOpacity style={styles.button} onPress={this.startChat}>
+                        <Text style={styles.buttonText}>Start Chat</Text>
                     </TouchableOpacity>
                 </View>
-
-                <Text style={styles.heading}>Enter the chat name:</Text>
-                <TextInput
-                    style={styles.chatStyle}
-                    placeholder="Chat name"
-                    onChangeText={name => this.setState({ name })}
-                    value={this.state.name}
-                    placeholderTextColor="gray"
-                />
-                <TouchableOpacity style={styles.button} onPress={this.startChat}>
-                    <Text style={styles.buttonText}>Start Chat</Text>
-                </TouchableOpacity>
             </View>
         );
     }
 }
-
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         width: '100%',
-        // borderRadius: 10,
-        // borderWidth: 1,
+        backgroundColor: '#075e54',
+    },
+    headerText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+        marginLeft: 30,
     },
     Iconleft: {
         position: 'absolute',
@@ -85,11 +103,17 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
     },
+    newChatContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     chatStyle: {
         borderWidth: 1,
         borderColor: 'gray',
         width: '70%',
         height: 50,
+        width: 200,
         paddingHorizontal: 5,
         color: 'black',
         marginBottom: 20,

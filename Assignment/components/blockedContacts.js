@@ -17,7 +17,7 @@ export default class BlockedContacts extends Component {
     };
   }
 
-  displayContacts = async () => {
+  displayBlockedContacts = async () => {
     try {
       const userId = await AsyncStorage.getItem('@user_id');
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/blocked", {
@@ -37,13 +37,15 @@ export default class BlockedContacts extends Component {
     }
   };
 
-  componentWillUnmount() {
-    console.log("HomePage unmounted");
-    this.displayContacts();
-  }
   componentDidMount() {
-    this.displayContacts();
+    this.displayBlockedContacts();
   }
+  // componentDidUpdate(prevProps, prevState) {
+  //   if (prevState.userData !== this.state.userData) {
+  //     this.displayBlockedContacts();
+  //   }
+  // }
+
 
   unBlock = async (user_id) => {
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block", {
@@ -54,7 +56,7 @@ export default class BlockedContacts extends Component {
       },
     })
       .then((response) => {
-        this.displayContacts();
+        this.displayBlockedContacts();
       })
       .then((response) => {
         console.log("user unblocked");
