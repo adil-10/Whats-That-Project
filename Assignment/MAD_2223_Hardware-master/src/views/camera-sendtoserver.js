@@ -1,8 +1,12 @@
 import { Camera, CameraType, onCameraReady, CameraPictureOptions } from 'expo-camera';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export default function CameraSendToServer() {
+    const navigation = useNavigation();
     const [type, setType] = useState(CameraType.back);
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const [camera, setCamera] = useState(null);
@@ -44,7 +48,6 @@ export default function CameraSendToServer() {
 
             .then(async (response) => {
                 console.log("pic taken")
-                navigation.navigate('Profile')
             })
             .catch((error) => {
                 console.log(error)
@@ -57,6 +60,13 @@ export default function CameraSendToServer() {
         return (
             <View style={styles.container}>
                 <Camera style={styles.camera} type={type} ref={ref => setCamera(ref)}>
+
+                    <View style={styles.Iconleft}>
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    </View>
+
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
                             <Text style={styles.text}>Flip Camera</Text>
@@ -77,6 +87,13 @@ export default function CameraSendToServer() {
 const styles = StyleSheet.create({
     container: {
         flex: 1
+    },
+    Iconleft: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        marginLeft: 15,
+        marginTop: 10,
     },
     buttonContainer: {
         alignSelf: 'flex-end',

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import validator from 'validator';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -11,11 +10,56 @@ export default class ChangePass extends Component {
     this.state = {
       isLoading: true,
       confirmPassword: '',
-      password: ''
+      password: '',
+      isModalVisible: false,
+      modalMessage: ''
     };
   }
 
+  closeModal = () => {
+    this.setState({ isModalVisible1: false });
+  };
+
   updateUser = async () => {
+    const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+    const { password, confirmPassword } = this.state;
+
+    if (password == '' || confirmPassword == '') {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Ensure fields are not empty',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+      return false;
+    }
+
+    if (this.state.confirmPassword != this.state.password) {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Passwords do not match',
+      });
+      // throw 'invalid email or pass'
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+      return false;
+    }
+
+    if (!passwdregex.test(this.state.password)) {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Enter a valid password',
+      });
+      // throw 'invalid email or pass'
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+      return false;
+      // return passwdregex.test(this.state.userData.password);
+    }
+
     const userId = await AsyncStorage.getItem('@user_id');
     let toSend = {
       password: this.state.password,
@@ -30,26 +74,72 @@ export default class ChangePass extends Component {
       body: JSON.stringify(toSend)
     })
       .then((response) => {
-        console.log('password changed')
+        if (response.status === 400) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Bad request',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 401) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Unauthorised',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 404) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'User not found',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 500) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Network error',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 403) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Forbidden',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 200) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Update Complete',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+
+        console.log('user updated')
       })
       .catch((error) => {
         console.log(error)
       })
-  }
-
-
-  validData = () => {
-
-    const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-
-    if (this.state.confirmPassword != this.state.password) {
-      this.setState({ Message: 'Passwords do not match' })
-      return false;
-    }
-    if (this.state.password != passwdregex) {
-      return passwdregex.test(this.state.userData.password);
-    }
-
   }
 
   render() {
@@ -85,7 +175,11 @@ export default class ChangePass extends Component {
           <Text>update password</Text>
         </TouchableOpacity>
 
-
+        <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+          </View>
+        </Modal>
 
       </View>
     );
@@ -132,5 +226,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: 'black',
-  }
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
+  },
 })

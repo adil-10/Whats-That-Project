@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 export default class NewChat extends Component {
@@ -7,9 +7,14 @@ export default class NewChat extends Component {
         super(props);
         this.state = {
             name: '',
+            isModalVisible: false,
+            modalMessage: ''
         };
         this.startChat = this.startChat.bind(this);
     }
+    closeModal = () => {
+        this.setState({ isModalVisible: false });
+    };
 
     startChat = async () => {
         const navigation = this.props.navigation;
@@ -27,13 +32,50 @@ export default class NewChat extends Component {
             body: JSON.stringify(toSend)
         })
             .then(async (response) => {
-                const responseJson = await response.json();
-                console.log(responseJson)
-                navigation.navigate('HomePage')
+                if (response.status === 400) {
+                    this.setState({
+                        isModalVisible: true,
+                        modalMessage: 'Bad request',
+                    });
+                    setTimeout(() => {
+                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+                    }, 2000);
+                }
+                else if (response.status === 401) {
+                    this.setState({
+                        isModalVisible: true,
+                        modalMessage: 'Unauthorised',
+                    });
+                    setTimeout(() => {
+                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+                    }, 2000);
+                }
+                if (response.status === 500) {
+                    this.setState({
+                        isModalVisible: true,
+                        modalMessage: 'Netword error',
+                    });
+                    setTimeout(() => {
+                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+                    }, 2000);
+                }
+                if (response.status === 201) {
+                    const responseJson = await response.json();
+                    this.setState({
+                        isModalVisible: true,
+                        modalMessage: 'Chat created',
+                    });
+                    setTimeout(() => {
+                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+                    }, 2000);
+                    // this.props.navigation.navigate('tabNav')
+                }
+
+
+
             })
             .catch((error) => {
                 console.log(error);
-                console.log(error.response && error.response.data);
             })
     }
 
@@ -64,6 +106,12 @@ export default class NewChat extends Component {
                         <Text style={styles.buttonText}>Start Chat</Text>
                     </TouchableOpacity>
                 </View>
+
+                <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+                    </View>
+                </Modal>
             </View>
         );
     }
@@ -128,5 +176,20 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    modalContainer: {
+        // flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalText: {
+        color: 'white',
+        fontSize: 15,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 20,
+        backgroundColor: '#333',
+        borderRadius: 10,
     },
 });

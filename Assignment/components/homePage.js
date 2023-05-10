@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
@@ -9,22 +9,28 @@ export default class HomePage extends Component {
     this.state = {
       name: '',
       chat_id: '',
-      limit: 20,
+      limit: 5,
       offset: 0,
       userData: [],
       chatData: [],
+      isModalVisible: false,
+      modalMessage: ''
     };
   }
+
   componentDidMount() {
     const navigation = this.props.navigation;
     console.log("HomePage mounted");
+    this.displayChat()
+    this.interval = setInterval(() => this.displayChat(), 3000);
     this.unsubscribe = this.props.navigation.addListener('focus', () => {
       this.checkLoggedIn();
     });
-    this.displayChat();
+
   }
 
   componentWillUnmount() {
+    clearInterval(this.interval);
     console.log("HomePage unmounted");
     this.unsubscribe();
   }
@@ -34,12 +40,16 @@ export default class HomePage extends Component {
     const value = await AsyncStorage.getItem('@session_token');
 
     if (value != null) {
-      this.props.navigation.navigate('HomePage');
+      this.props.navigation.navigate('tabNav');
     }
 
     if (value == null) {
       this.props.navigation.navigate('Login');
     }
+  };
+
+  closeModal = () => {
+    this.setState({ isModalVisible1: false });
   };
 
   displayChat = async () => {
@@ -50,20 +60,42 @@ export default class HomePage extends Component {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-      let json = await response.json();
-      this.setState({
-        isLoading: false,
-        userData: json,
-      });
-      // console.log(this.state.userData)
+      if (response.status === 401) {
+        this.setState({
+          isModalVisible1: true,
+          modalMessage: 'Unauthorised',
+        });
+        setTimeout(() => {
+          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 500) {
+        this.setState({
+          isModalVisible1: true,
+          modalMessage: 'Network Error',
+        });
+        setTimeout(() => {
+          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+
+      else if (response.status === 200) {
+        let json = await response.json();
+        this.setState({
+          isLoading: false,
+          userData: json,
+        });
+      }
     }
     catch (error) {
       console.log(error);
     }
   };
 
+
   render() {
     const navigation = this.props.navigation;
+
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -83,11 +115,19 @@ export default class HomePage extends Component {
             keyExtractor={({ chat_id }, index) => chat_id}
           />
         </View>
+
         <View style={styles.addStyleContainer}>
           <TouchableOpacity style={styles.addStyle} onPress={() => navigation.navigate('NewChat')}>
             <Image style={styles.imageStyle} source={{ uri: "https://cdn-icons-png.flaticon.com/512/14/14558.png" }} />
           </TouchableOpacity>
         </View>
+
+        <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+          </View>
+        </Modal>
+
       </View>
     );
   }
@@ -142,10 +182,24 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
   },
-  addStyle: {},
   imageStyle: {
     width: 50,
     height: 50,
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
   },
 });
 

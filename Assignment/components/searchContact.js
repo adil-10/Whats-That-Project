@@ -1,5 +1,7 @@
+//style next page button
+//use modals for validations
 import React, { Component } from 'react';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,14 +12,18 @@ class SearchContact extends Component {
       isLoading: false,
       search: '',
       search_in: 'all',
-      limit: 20,
+      limit: 8,
       offset: 0,
       accountFound: null,
       user_id: '',
       userData: [],
-      Message: ''
+      isModalVisible: false,
+      modalMessage: ''
     };
   }
+  closeModal = () => {
+    this.setState({ isModalVisible1: false });
+  };
 
   // change so you can search first and last name too
   //needs validation for if email not found
@@ -35,12 +41,45 @@ class SearchContact extends Component {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-      let json = await response.json();
-      console.log(json);
-      this.setState({
-        isLoading: false,
-        userData: json,
-      });
+
+      if (response.status === 400) {
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Bad request',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 401) {
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Unauthorised',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 500) {
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Network Error',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 200) {
+        let json = await response.json();
+        console.log('ok it worked')
+        this.setState({
+          isLoading: false,
+          userData: json,
+        });
+      }
     }
     catch (error) {
       console.log(error);
@@ -52,7 +91,6 @@ class SearchContact extends Component {
     let toSend = {
       user_id: user_id,
     };
-
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/contact", {
       method: 'POST',
       headers: {
@@ -61,12 +99,58 @@ class SearchContact extends Component {
       },
       body: JSON.stringify(toSend)
     })
-      .then(async (response) => {
-        this.SearchUser();
-      })
-      .then(async (response) => {
-        console.log('user added');
-        this.setState({ Message: "user added" });
+      .then((response) => {
+        if (response.status === 200) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'User added',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+          this.SearchUser();
+        }
+        else if (response.status === 400) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'You can not add yourself',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 401) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Unauthorised',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 404) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'User not found',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 500) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Network Error',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
       })
       .catch((error) => {
         console.log('error:', error);
@@ -84,6 +168,7 @@ class SearchContact extends Component {
       );
     }
     else {
+      const { offset } = this.state;
       return (
         <View style={styles.container}>
 
@@ -132,6 +217,31 @@ class SearchContact extends Component {
             )}
             keyExtractor={({ user_id }, index) => user_id}
           />
+
+          <TouchableOpacity
+            onPress={() => {
+              this.setState({ offset: (offset + 5) }, () => {
+                this.SearchUser();
+              });
+            }}
+          ><Text>Next Page</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              this.setState({ offset: (offset - 5) }, () => {
+                this.SearchUser();
+              });
+            }}
+          ><Text>previous Page</Text>
+          </TouchableOpacity>
+
+          <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+            </View>
+          </Modal>
+
         </View>
       );
     }
@@ -212,7 +322,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginBottom: 10,
     paddingTop: 5,
-    width: 370,
+    width: 395,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -220,7 +330,8 @@ const styles = StyleSheet.create({
   },
   textView: {
     fontSize: 15,
-    maxWidth: '100%', // set a fixed maximum width for the text
+    paddingLeft: 10,
+    width: '100%', // set a fixed maximum width for the text
     overflow: 'hidden', // set overflow to 'hidden'
     whiteSpace: 'nowrap', // prevent wrapping of text
     textOverflow: 'ellipsis', // show ellipsis (...) for truncated text
@@ -229,12 +340,28 @@ const styles = StyleSheet.create({
     width: '20%',
     textAlign: 'center',
     marginVertical: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 8,
     borderColor: 'black',
-    backgroundColor: '#72F3A6'
+    backgroundColor: '#72F3A6',
+    marginLeft: 10, // Add this line
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
   },
 
 });

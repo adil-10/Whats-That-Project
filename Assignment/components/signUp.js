@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import validator from 'validator';
 
 class SignUp extends Component {
@@ -12,18 +12,15 @@ class SignUp extends Component {
       email: '',
       password: '',
       confirmPassword: '',
-      Message: '',
+      isModalVisible: false,
+      modalMessage: '',
     };
+    this.addUser = this.addUser.bind(this);
   }
+  closeModal = () => {
+    this.setState({ isModalVisible: false });
+  };
 
-  signUp = () => {
-    this.setState({ Message: '' }); // clear error message
-    const isValid = this.validData(); // validate the input data
-    if (isValid) {
-      if (this.addUser())
-        this.props.navigation.navigate('Login');
-    }
-  }
 
   validateEmail = (email) => {
     return validator.isEmail(email);
@@ -35,41 +32,66 @@ class SignUp extends Component {
     return passwdregex.test(password);
   }
 
-  //validation
-  validData = () => {
-
+  addUser() {
     const { first_name, last_name, email, password, confirmPassword } = this.state;
-
+    const navigation = this.props.navigation;
     // make sure email and password isnt empty
     if (first_name == '' || last_name == '' || email == '' || password == '' || confirmPassword == '') {
-      this.setState({ Message: 'Ensure no fields are empty' });
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Ensure email and password field are not empty',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
 
-    if (typeof email != 'string' || typeof password != 'string') {
-      this.setState({ Message: 'Enter valid characters' });
+    if (typeof email != 'string' || typeof password != 'string' || typeof first_name != 'string' || typeof last_name != 'string') {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Enter valid characters',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
 
     //call to validate email adn password, if requirements not met return false
     if (!this.validateEmail(email)) {
-      this.setState({ Message: "Email invalid format" });
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Email invalid format',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
 
     if (!this.validatePassword(password)) {
-      this.setState({ Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes" });
+
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
 
     if (confirmPassword != password) {
-      this.setState({ Message: 'Passwords do not match' })
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Passwords must match',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
-    return true;
-  }
-
-  addUser() {
 
     let toSend = {
       first_name: this.state.first_name,
@@ -87,7 +109,37 @@ class SignUp extends Component {
       body: JSON.stringify(toSend)
     })
       .then((response) => {
-        console.log('user created')
+        console.log(response.status)
+        if (response.status === 201) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: ' User Created Successfully',
+          });
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+          console.log('hello!')
+        }
+
+        else if (response.status === 400) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: ' User already exists',
+          });
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+
+        } else if (response.status === 500) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Internal Server Error',
+          });
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+          // throw 'network error'
+        }
       })
       .catch((error) => {
         console.log(error)
@@ -96,7 +148,7 @@ class SignUp extends Component {
 
   //what user sees
   render() {
-    const { Message } = this.state;
+
     const navigation = this.props.navigation;
     return (
       <View style={styles.container}>
@@ -141,7 +193,7 @@ class SignUp extends Component {
         />
 
         <TouchableOpacity style={styles.loginButton}
-          onPress={this.signUp}>
+          onPress={this.addUser}>
 
           <Text>Sign Up</Text>
 
@@ -151,9 +203,11 @@ class SignUp extends Component {
           <Text>Have an account?</Text>
         </TouchableOpacity>
 
-        <Text>{Message}</Text>
-
-        <StatusBar style="auto" />
+        <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+          </View>
+        </Modal>
 
       </View>
     );
@@ -196,7 +250,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: 'black',
-  }
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
+  },
 });
 
   // / sort background colour out

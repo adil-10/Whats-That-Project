@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { Text, Modal, View, Button, Image, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
@@ -15,10 +13,15 @@ export default class Contacts extends Component {
       isLoading: true,
       isModalVisible: false,
       accountFound: null,
+      isModalVisible1: false,
+      modalMessage: ''
     };
   }
-
+  closeModal = () => {
+    this.setState({ isModalVisible1: false });
+  };
   // getUserPhoto = async (user_id) => {
+
   //   const response = await fetch(`http://localhost:3333/api/1.0.0/user/${user_id}/photo`, {
   //     method: "GET",
   //     headers: {
@@ -36,6 +39,7 @@ export default class Contacts extends Component {
   // };
 
   //display user data
+
   displayContacts = async () => {
     try {
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/contacts", {
@@ -44,11 +48,34 @@ export default class Contacts extends Component {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-      let json = await response.json();
-      this.setState({
-        isLoading: false,
-        userData: json,
-      });
+      if (response.status === 401) {
+        this.setState({
+          isModalVisible1: true,
+          modalMessage: 'Unauthorised',
+        }); console.log(isModalVisible1)
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 500) {
+        this.setState({
+          isModalVisible1: true,
+          modalMessage: 'Network Error',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 200) {
+        let json = await response.json();
+        console.log('ok it worked')
+        this.setState({
+          isLoading: false,
+          userData: json,
+        });
+      }
     }
     catch (error) {
       console.log(error);
@@ -64,11 +91,34 @@ export default class Contacts extends Component {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-      let json = await response.json();
-      this.setState({
-        isLoading: false,
-        userData1: json,
-      });
+      if (response.status === 401) {
+        this.setState({
+          isModalVisible1: true,
+          modalMessage: 'Unauthorised',
+        }); console.log('unauthorised')
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 500) {
+        this.setState({
+          isModalVisible1: true,
+          modalMessage: 'Network Error',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 200) {
+        let json = await response.json();
+        console.log('ok')
+        this.setState({
+          isLoading: false,
+          userData1: json,
+        });
+      }
     }
     catch (error) {
       console.log(error);
@@ -84,26 +134,74 @@ export default class Contacts extends Component {
       },
     })
       .then((response) => {
-        this.displayBlockedContacts();
-      })
-      .then((response) => {
-        this.displayContacts();
-      })
-      .then((response) => {
-        console.log("user unblocked");
+        if (response.status === 200) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'User Blocked',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+          this.displayBlockedContacts();
+          this.displayContacts();
+        }
+        else if (response.status === 400) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'You can not block yourself',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 401) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'Unauthorised',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 404) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'User not found',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 500) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'Network Error',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
       })
       .catch((error) => {
-        console.log(error);
+        console.log('error:', error);
       })
   }
 
   componentWillUnmount() {
     console.log("HomePage unmounted");
     this.displayContacts();
+    clearInterval(this.interval);
   }
   componentDidMount() {
+
     this.displayContacts();
     this.displayBlockedContacts();
+    this.interval = setInterval(() => this.displayContacts(), 5000);
     // this.getUserPhoto();
   }
 
@@ -115,11 +213,59 @@ export default class Contacts extends Component {
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
+
       .then((response) => {
-        this.displayContacts();
-      })
-      .then((response) => {
-        console.log("item deleted");
+        if (response.status === 200) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'User Deleted',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+          this.displayContacts();
+        }
+        else if (response.status === 400) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'You can not remove yourself',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 401) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'Unauthorised',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 404) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'User not found',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 500) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'Network Error',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
       })
       .catch((error) => {
         console.log(error);
@@ -135,11 +281,58 @@ export default class Contacts extends Component {
       },
     })
       .then((response) => {
-        this.displayContacts();
-        this.displayBlockedContacts();
-      })
-      .then(async (response) => {
-        console.log('user blocked');
+        if (response.status === 200) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'User Blocked',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+          this.displayContacts();
+          this.displayBlockedContacts();
+        }
+        else if (response.status === 400) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'You can not block yourself',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 401) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'Unauthorised',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 404) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'User not found',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        else if (response.status === 500) {
+          this.setState({
+            isModalVisible1: true,
+            modalMessage: 'Network Error',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
       })
       .catch((error) => {
         console.log('error:', error);
@@ -243,6 +436,11 @@ export default class Contacts extends Component {
             </View>
           </Modal>
 
+          <Modal visible={this.state.isModalVisible1} animationType='slide' transparent={true}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+            </View>
+          </Modal>
         </View>
       );
     }
@@ -396,6 +594,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'Black',
     textAlign: 'center',
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
   },
 });
 //component will focus 

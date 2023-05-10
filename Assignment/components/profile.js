@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DisplayImage from '../MAD_2223_Hardware-master/src/views/display';
 export default class Profile extends Component {
@@ -10,10 +11,20 @@ export default class Profile extends Component {
       isLoading: true,
       first_name: '',
       last_name: '',
-      email: ''
+      email: '',
+      isModalVisible: false,
+      modalMessage: ''
     };
   }
+  closeModal = () => {
+    this.setState({ isModalVisible: false });
+  };
 
+  validateEmail = (email) => {
+    return validator.isEmail(email);
+  }
+  //display user data
+  //display user data
   //display user data
   getData = async () => {
     try {
@@ -25,47 +36,109 @@ export default class Profile extends Component {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-      let json = await response.json();
-      this.setState({
-        isLoading: false,
-        first_name: json.first_name,
-        last_name: json.last_name,
-        email: json.email
-      });
+
+      if (response.status === 401) {
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Unauthorised',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 404) {
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'User not found',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 500) {
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Internal Server Error',
+        });
+        // throw 'invalid email or pass'
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 200) {
+        let json = await response.json();
+        this.setState({
+          isLoading: false,
+          first_name: json.first_name,
+          last_name: json.last_name,
+          email: json.email
+        });
+      }
     }
     catch (error) {
       console.log(error);
     }
   };
 
-  // getImage = async () => {
-  //   try {
-  //     const userId = await AsyncStorage.getItem('@user_id');
-
-  //     let response = await fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId + "/photo", {
-  //       method: 'GET',
-  //       headers: {
-  //         'X-Authorization': await AsyncStorage.getItem('@session_token'),
-  //       },
-  //     });
-  //     let json = await response.json();
-  //     this.setState({
-  //       user_id: userId,
-  //     });
-  //   }
-  //   catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
 
   componentDidMount() {
-    this.getData();
+    // const cameraSendToServer = new CameraSendToServer();
+    // const container = document.getElementById('container');
+
+    this.unsubscribe = this.props.navigation.addListener('focus', () => {
+      this.getData();
+      // container.appendChild(cameraSendToServer.render());
+    });
+
+  }
+
+  componentWillUnmount() {
+    console.log("Profile unmounted");
+    this.unsubscribe();
   }
 
   // update user info
   updateUser = async () => {
     const userId = await AsyncStorage.getItem('@user_id');
+    const { first_name, last_name, email } = this.state;
+
+    if (first_name == '' || last_name == '' || email == '') {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Ensure textboxes are not empty',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+      return false;
+    }
+
+    if (typeof email != 'string' || typeof first_name != 'string' || typeof last_name != 'string') {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Enter valid characters',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+      return false;
+    }
+
+    //call to validate email adn password, if requirements not met return false
+    if (!this.validateEmail(email)) {
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Email invalid format',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+      return false;
+    }
+
     let toSend = {
       first_name: this.state.first_name,
       last_name: this.state.last_name,
@@ -80,7 +153,69 @@ export default class Profile extends Component {
       },
       body: JSON.stringify(toSend)
     })
+
       .then((response) => {
+        if (response.status === 400) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Bad request',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 401) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Unauthorised',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 404) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'User not found',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 500) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Network error',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 403) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Forbidden',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+        if (response.status === 200) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Update Complete',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+        }
+
         console.log('user updated')
       })
       .catch((error) => {
@@ -100,19 +235,54 @@ export default class Profile extends Component {
         },
       });
 
-      if (response.status === 200) {
-        await AsyncStorage.removeItem('@session_token');
-        await AsyncStorage.removeItem('@user_id');
-        navigation.navigate('Login');
-      }
-      else if (response.status === 401) {
+      if (response.status === 401) {
         console.log('Unauthorised');
         await AsyncStorage.removeItem('@session_token');
         await AsyncStorage.removeItem('@user_id');
         navigation.navigate('Login');
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Unauthorised',
+        });
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 500) {
+        console.log('Unauthorised');
+        await AsyncStorage.removeItem('@session_token');
+        await AsyncStorage.removeItem('@user_id');
+        navigation.navigate('Login');
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Network Error',
+        });
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+      }
+      else if (response.status === 200) {
+        await AsyncStorage.removeItem('@session_token');
+        await AsyncStorage.removeItem('@user_id');
+
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Logout successful',
+        });
+        console.log(this.state.isModalVisible)
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
+        navigation.navigate('Login');
       }
       else {
-        throw 'Something went wrong';
+        this.setState({
+          isModalVisible: true,
+          modalMessage: 'Something went wrong',
+        });
+        setTimeout(() => {
+          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+        }, 2000);
       }
     }
     catch (error) {
@@ -170,6 +340,11 @@ export default class Profile extends Component {
           </TouchableOpacity>
 
         </View>
+        <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -238,6 +413,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: 'black',
-  }
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
+  },
 })
 //isfocuseffect

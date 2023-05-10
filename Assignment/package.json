@@ -25,8 +25,11 @@
     "react-native-popup-menu": "^0.16.1",
     "react-native-safe-area-context": "4.4.1",
     "react-native-screens": "~3.18.0",
+    "react-native-toast-message": "^2.1.6",
+    "react-native-toast-notifications": "^3.3.1",
     "react-native-web": "~0.18.9",
     "save": "^2.9.0",
+    "toast": "^0.5.4",
     "use-long-press": "^3.0.4",
     "validator": "^13.9.0"
   },

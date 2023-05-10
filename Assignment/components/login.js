@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -10,17 +10,13 @@ export default class Login extends Component {
     this.state = {
       email: "",
       password: "",
-      Message: ""
+      isModalVisible: false,
+      modalMessage: ''
     };
   }
-
-  login = () => {
-    const navigation = this.props.navigation;
-    const isValid = this.validData(); // validate the input data
-    if (isValid) {
-      this.loginUser();
-    }
-  }
+  closeModal = () => {
+    this.setState({ isModalVisible: false });
+  };
 
   validateEmail = (email) => {
     return validator.isEmail(email);
@@ -31,38 +27,46 @@ export default class Login extends Component {
     return passwdregex.test(password);
   }
 
-  //validation
-  validData = () => {
+  loginUser = async () => {
+    const navigation = this.props.navigation;
 
     const { email, password } = this.state;
 
     // make sure email and password isnt empty
     if (email == "" || password == "") {
-      this.setState({ Message: "Ensure email and password field aren't empty" });
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Ensure email and password field are not empty',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
 
     if (typeof email != "string" || typeof password != "string") {
-      this.setState({ Message: "Enter valid characters" });
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Enter valid characters',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
+
       return false;
     }
 
     //call to validate email adn password, if requirements not met return false
     if (!this.validateEmail(email)) {
-      this.setState({ Message: "Email invalid format" });
+      this.setState({
+        isModalVisible: true,
+        modalMessage: 'Email invalid format',
+      });
+      setTimeout(() => {
+        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+      }, 2000);
       return false;
     }
-
-    // if (!this.validatePassword(password)){
-    //   this.setState({Message: "Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes"});
-    //   return false;
-    // }
-
-    return true;
-  }
-
-  loginUser = async () => {
-    const navigation = this.props.navigation;
 
     return fetch("http://127.0.0.1:3333/api/1.0.0/login", {
       method: 'POST',
@@ -76,16 +80,51 @@ export default class Login extends Component {
     })
 
       .then(async (response) => {
+        if (response.status === 400) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Invalid Email or Password',
+          });
+          // throw 'invalid email or pass'
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+
+        }
+        else if (response.status === 500) {
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'Internal Server Error',
+          });
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+          // throw 'network error'
+        }
         const responseJson = await response.json();
-        console.log(responseJson)
-        await AsyncStorage.setItem('@user_id', responseJson.id);
-        await AsyncStorage.setItem('@session_token', responseJson.token);
-        this.props.navigation.navigate('HomePage')
+        if (response.status === 200) {
+
+          await AsyncStorage.setItem('@user_id', responseJson.id);
+          await AsyncStorage.setItem('@session_token', responseJson.token);
+          navigation.navigate('tabNav');
+          this.setState({
+            isModalVisible: true,
+            modalMessage: 'User successfully logged in',
+          });
+          setTimeout(() => {
+            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
+          }, 2000);
+
+
+        }
+        console.log(response.status)
       })
       .catch((error) => {
+        // this.setState('error: ', error)
         console.log(error)
-      })
+      });
   }
+
 
   //what user sees
   render() {
@@ -113,7 +152,7 @@ export default class Login extends Component {
         {/* <View style={styles.buttonsContainer}> */}
 
         <TouchableOpacity style={styles.loginButton}
-          onPress={this.login}>
+          onPress={() => this.loginUser()}>
           <Text>log in</Text>
         </TouchableOpacity>
 
@@ -124,9 +163,14 @@ export default class Login extends Component {
         </TouchableOpacity>
         {/* </View> */}
 
-        {Message ? <Text>{Message}</Text> : null}
 
-        <StatusBar style="auto" />
+        <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{this.state.modalMessage}</Text>
+          </View>
+        </Modal>
+
+
 
       </View>
     );
@@ -180,5 +224,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: 'black',
-  }
+  },
+  modalContainer: {
+    // flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 10,
+  },
 });

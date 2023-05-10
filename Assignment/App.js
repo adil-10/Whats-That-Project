@@ -1,7 +1,4 @@
 import React, { Component } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -12,7 +9,6 @@ import HomePage from './components/homePage';
 import Contacts from './components/contacts';
 import Profile from './components/profile';
 import ChangePass from './components/changePass';
-import BlockedContacts from './components/blockedContacts';
 import SearchContact from './components/searchContact';
 import NewChat from './components/newChat';
 import Chat from './components/chat';
@@ -39,6 +35,7 @@ const HomeTab = () => {
 export default class App extends Component {
   render() {
     return (
+
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
@@ -47,7 +44,7 @@ export default class App extends Component {
           <Stack.Screen name='SearchContact' component={SearchContact} options={{ headerShown: false }} />
           <Stack.Screen name='NewChat' component={NewChat} options={{ headerShown: false }} />
           <Stack.Screen name='Chat' component={Chat} options={{ headerShown: false }} />
-          <Stack.Screen name='HomePage' component={HomeTab} options={{ headerShown: false }} />
+          <Stack.Screen name='tabNav' component={HomeTab} options={{ headerShown: false }} />
 
           <Stack.Screen name='CameraBasic' component={CameraBasic} options={{ headerShown: false }} />
           <Stack.Screen name='CameraTakePicture' component={CameraTakePicture} options={{ headerShown: false }} />
@@ -58,3 +55,5 @@ export default class App extends Component {
     )
   }
 }
+
+//focus listender
