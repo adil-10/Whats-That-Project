@@ -12,8 +12,6 @@ export default class Chat extends Component {
             modalVisible: false,
             isLoading: false,
             user_id: '',
-            limit: 20,
-            offset: 0,
             message: '',
             chatData: [],
             userData: [],
@@ -24,14 +22,25 @@ export default class Chat extends Component {
         this.sendText = this.sendText.bind(this);
     }
 
+    //toggle open and close modal
     closeModal = () => {
-        this.setState({ isModalVisible1: false });
+        this.setState({ isModalVisible: false });
+    };
+
+    showModal = (message) => {
+        this.setState({
+            isModalVisible: true,
+            modalMessage: message,
+        });
+        setTimeout(() => {
+            this.setState({ isModalVisible: false });
+        }, 2000);
     };
 
     componentWillUnmount() {
         clearInterval(this.interval);
     }
-
+    //call get chat at intervals of 5 seconds and get chat and display contacts upon loading page
     componentDidMount() {
         this.getChat();
         this.displayContacts();
@@ -41,58 +50,34 @@ export default class Chat extends Component {
     //get method to display single chat info
     getChat = async () => {
         try {
+            //user id of sender
             const userId = await AsyncStorage.getItem('@user_id');
             this.setState({ userId });
+            //data (item) that was passed from previous page 
             const item = this.props.route.params;
-
-            const limit = this.state.limit;
-            const offset = this.state.offset;
-
-            let response = await fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "&limit=" + limit + "&offset=" + offset, {
+            //getting the chat id from item, passing it into url
+            let response = await fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id, {
                 method: 'GET',
                 headers: {
                     'X-Authorization': await AsyncStorage.getItem('@session_token'),
                 },
             });
+            //responses
             if (response.status === 401) {
-                this.setState({
-                    isModalVisible: true,
-                    modalMessage: 'Unauthorised',
-                });
-
-                setTimeout(() => {
-                    this.setState({ isModalVisible: false });
-                }, 2000);
+                this.showModal('Unauthorised');
+                return false;
             }
             else if (response.status === 403) {
-                this.setState({
-                    isModalVisible: true,
-                    modalMessage: 'Forbidden',
-                });
-
-                setTimeout(() => {
-                    this.setState({ isModalVisible: false });
-                }, 2000);
+                this.showModal('Forbidden');
+                return false;
             }
             else if (response.status === 404) {
-                this.setState({
-                    isModalVisible: true,
-                    modalMessage: 'User not found',
-                });
-
-                setTimeout(() => {
-                    this.setState({ isModalVisible: false });
-                }, 2000);
+                this.showModal('User not found');
+                return false;
             }
             else if (response.status === 500) {
-                this.setState({
-                    isModalVisible: true,
-                    modalMessage: 'Network error',
-                });
-
-                setTimeout(() => {
-                    this.setState({ isModalVisible: false });
-                }, 2000);
+                this.showModal('Network error');
+                return false;
             }
             else if (response.status === 200) {
                 let json = await response.json();
@@ -109,12 +94,13 @@ export default class Chat extends Component {
 
     // patch update user info
     updateChatinfo = async () => {
+        //data (item) that was passed from previous page 
         const item = this.props.route.params;
 
         let toSend = {
             name: this.state.name,
         };
-
+        //getting the chat id from item, passing it into url
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id, {
             method: 'PATCH',
             headers: {
@@ -124,65 +110,30 @@ export default class Chat extends Component {
             body: JSON.stringify(toSend)
         })
             .then((response) => {
+                //responses
                 if (response.status === 400) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Bad request',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Bad request');
+                    return false;
                 }
                 else if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 else if (response.status === 403) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Forbidden',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Forbidden');
+                    return false;
                 }
                 else if (response.status === 404) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User not found',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User not found');
+                    return false;
                 }
                 else if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Network error',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Network error');
+                    return false;
                 }
                 else if (response.status === 200) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Update Complete',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Update Complete');
+                    return false;
                 }
             })
             .catch((error) => {
@@ -190,9 +141,11 @@ export default class Chat extends Component {
             })
     }
 
-    //Post to add contact to chat
+    //Post to add contact to chat, retriving the user_id as a param
     addContact = async (user_id) => {
+        //data (item) that was passed from previous page 
         const item = this.props.route.params;
+        //getting the chat id from item, passing it into url
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/user/" + user_id, {
             method: 'POST',
             headers: {
@@ -201,66 +154,32 @@ export default class Chat extends Component {
             },
         })
             .then((response) => {
+                //response
                 if (response.status === 400) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Bad request',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Bad request');
+                    return false;
                 }
                 else if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 else if (response.status === 403) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Forbidden',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Forbidden');
+                    return false;
                 }
                 else if (response.status === 404) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User not found',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User not found');
+                    return false;
                 }
                 else if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Network error',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Network error');
+                    return false;
                 }
                 else if (response.status === 200) {
+                    //call getchat to rerender all chats on page showing new message sent
                     this.getChat();
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Member added',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Member added');
+                    return false;
                 }
             })
             .catch((error) => {
@@ -268,9 +187,11 @@ export default class Chat extends Component {
             })
     }
 
-    //delete method to remove contact from chat
+    //delete method to remove contact from chat,  retriving the user_id as a param
     removeContact = async (user_id) => {
+        //data (item) that was passed from previous page 
         const item = this.props.route.params;
+        //getting the chat id from item, passing it into url, passing user_id into url too
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/user/" + user_id, {
             method: 'DELETE',
             headers: {
@@ -278,57 +199,28 @@ export default class Chat extends Component {
                 'X-Authorization': await AsyncStorage.getItem('@session_token'),
             },
         })
+            //response
             .then((response) => {
                 if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 else if (response.status === 403) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Forbidden',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Forbidden');
+                    return false;
                 }
                 else if (response.status === 404) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User not found',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User not found');
+                    return false;
                 }
                 else if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Network error',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Network error');
+                    return false;
                 }
                 else if (response.status === 200) {
                     this.getChat();
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User removed',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User removed');
+                    return false;
                 }
             })
             .catch((error) => {
@@ -338,69 +230,42 @@ export default class Chat extends Component {
 
     //post to send message
     sendText = async () => {
+        //data (item) that was passed from previous page
         const item = this.props.route.params;
         let toSend = {
             message: this.state.message
         };
+        //getting the chat id from item, passing it into url
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/message", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Authorization': await AsyncStorage.getItem('@session_token'),
             },
+            //sending message to api 
             body: JSON.stringify(toSend)
         })
-
+            //response
             .then((response) => {
                 if (response.status === 400) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Bad request',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Bad request');
+                    return false;
                 }
                 else if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 else if (response.status === 403) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Forbidden',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Forbidden');
+                    return false;
                 }
                 else if (response.status === 404) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User not found',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User not found');
+                    return false;
                 }
                 else if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Network error',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Network error');
+                    return false;
                 }
                 else if (response.status === 200) {
                     this.getChat();
@@ -412,12 +277,11 @@ export default class Chat extends Component {
             })
     }
 
-    //delete message
+    //delete message, passing the message id as a param from the selected message
     deleteChat = async (message_id) => {
+        //data (item) that was passed from previous page
         const item = this.props.route.params;
-        console.log(message_id)
-        const { chatData } = this.state;
-
+        //getting the chat id from item, passing it into url
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/message/" + message_id, {
             method: 'DELETE',
             headers: {
@@ -427,44 +291,20 @@ export default class Chat extends Component {
         })
             .then((response) => {
                 if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 else if (response.status === 403) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Forbidden',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Forbidden');
+                    return false;
                 }
                 else if (response.status === 404) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User not found',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User not found');
+                    return false;
                 }
                 else if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Network error',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Network error');
+                    return false;
                 }
                 else if (response.status === 200) {
                     this.getChat();
@@ -476,16 +316,15 @@ export default class Chat extends Component {
             })
     }
 
-    // update user info
+    // update user info passing the message id as a param from the selected message
     updateChat = async (message_id) => {
-        console.log(this.state.message)
+        //data (item) that was passed from previous page
         const item = this.props.route.params;
-        const message = this.state.message;
-        const { chatData } = this.state;
+
         let toSend = {
             message: this.state.message,
         };
-
+        //getting the chat id from item, passing it into url, passing message_id across too
         return fetch("http://127.0.0.1:3333/api/1.0.0/chat/" + item.item.chat_id + "/message/" + message_id, {
             method: 'PATCH',
             headers: {
@@ -496,65 +335,29 @@ export default class Chat extends Component {
         })
             .then((response) => {
                 if (response.status === 400) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Bad request',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Bad request');
+                    return false;
                 }
                 else if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 else if (response.status === 403) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Forbidden',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Forbidden');
+                    return false;
                 }
                 else if (response.status === 404) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'User not found',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('User not found');
+                    return false;
                 }
                 else if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Network error',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Network error');
+                    return false;
                 }
                 else if (response.status === 200) {
                     this.getChat();
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Message updated',
-                    });
-
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false });
-                    }, 2000);
+                    this.showModal('Message updated');
+                    return false;
                 }
             })
             .catch((error) => {
@@ -568,19 +371,33 @@ export default class Chat extends Component {
             let response = await fetch("http://127.0.0.1:3333/api/1.0.0/contacts", {
                 method: 'GET',
                 headers: {
+                    //check users session token in async story
                     'X-Authorization': await AsyncStorage.getItem('@session_token'),
                 },
             });
-            let json = await response.json();
-            this.setState({
-                isLoading: false,
-                userData: json,
-            });
+            if (response.status === 401) {
+                this.showModal('Unauthorised');
+                return false;
+            }
+            else if (response.status === 500) {
+                this.showModal('Network Error');
+                return false;
+            }
+            else if (response.status === 200) {
+                let json = await response.json();
+                console.log('ok it worked')
+                this.setState({
+                    //store resulting data in array
+                    isLoading: false,
+                    userData: json,
+                });
+            }
         }
         catch (error) {
             console.log(error);
         }
     };
+
 
     //Method to expand and collapse message
     toggleExpanded(messageId) {
@@ -618,6 +435,7 @@ export default class Chat extends Component {
 
     render() {
         const { modalVisible } = this.state;
+        //set state of item to be the item from the previous page that was passed to chat page
         const item = this.props.route.params;
         const { chatData } = this.state;
 
@@ -631,7 +449,7 @@ export default class Chat extends Component {
                             <Ionicons name="arrow-back" size={24} color="black" />
                         </TouchableOpacity>
                     </View>
-                    {/* toggle modal */}
+                    {/* toggle modal on click */}
                     <View style={styles.Icon}>
                         <TouchableOpacity onPress={() => this.setState({ modalVisible: true })}>
                             <Text style={{ fontSize: 25 }}>+</Text>
@@ -641,12 +459,17 @@ export default class Chat extends Component {
 
                 <View style={styles.chatContainer}>
                     <FlatList
+                        //revser order
                         inverted
                         data={chatData.messages}
                         renderItem={({ item }) => {
+                            //extract user id
                             const { userId } = this.state;
+                            //extract user id from author pproperty
                             const sender = item.author.user_id;
+                            //checks if sender valuer os the same as the user id, convert both to integers
                             const isSentByCurrentUser = parseInt(sender) === parseInt(userId);
+                            //if true style messages to right indicating user logged in sent the messages, else style messages to left 
                             const messageStyle = isSentByCurrentUser ? styles.rightMessage : styles.leftMessage;
 
                             return (
@@ -660,6 +483,7 @@ export default class Chat extends Component {
                                                     <Text style={styles.authorText}>
                                                         {item.author.first_name} {item.author.last_name}
                                                     </Text>
+                                                    {/* if sent by current user give open to expand and collapse */}
                                                     {isSentByCurrentUser && (
                                                         <Text style={styles.expandButton}>
                                                             {!item.expanded ? '+' : '-'}
@@ -681,6 +505,7 @@ export default class Chat extends Component {
                                                     <Text style={styles.authorText}>
                                                         {item.author.first_name} {item.author.last_name}
                                                     </Text>
+                                                    {/* if sent by current user give open to expand and collapse */}
                                                     {isSentByCurrentUser && (
                                                         <Text style={styles.expandButton}>
                                                             {!item.expanded ? '+' : '-'}
@@ -730,7 +555,7 @@ export default class Chat extends Component {
 
                             <View style={styles.modalView}>
                                 <View style={styles.inputViewContainer}>
-                                    {/* chat name renderede in textinput, save button to update */}
+                                    {/* chat name rendered in textinput, save button to update */}
                                     <TextInput
                                         style={styles.modelViewText}
                                         placeholder={item.item.name}
@@ -980,4 +805,3 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
 });
-//error validations

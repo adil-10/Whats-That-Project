@@ -17,60 +17,43 @@ export default class Contacts extends Component {
       modalMessage: ''
     };
   }
-  closeModal = () => {
-    this.setState({ isModalVisible1: false });
-  };
-  // getUserPhoto = async (user_id) => {
 
-  //   const response = await fetch(`http://localhost:3333/api/1.0.0/user/${user_id}/photo`, {
-  //     method: "GET",
-  //     headers: {
-  //       'Accept': 'image/png',
-  //       'X-Authorization': await AsyncStorage.getItem('@session_token'),
-  //     }
-  //   });
-  //   if (response.ok) {
-  //     const resBlob = await response.blob();
-  //     return URL.createObjectURL(resBlob);
-  //   } else {
-  //     console.log('Error retrieving user photo');
-  //     return null;
-  //   }
-  // };
+  //toggle open and close modal
+  closeModal = () => {
+    this.setState({ isModalVisible: false });
+  };
+
+  showModal = (message) => {
+    this.setState({
+      isModalVisible1: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible1: false });
+    }, 2000);
+  };
 
   //display user data
-
   displayContacts = async () => {
     try {
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/contacts", {
         method: 'GET',
         headers: {
+          //check users session token in async story
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
       if (response.status === 401) {
-        this.setState({
-          isModalVisible1: true,
-          modalMessage: 'Unauthorised',
-        }); console.log(isModalVisible1)
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Unauthorised');
+        return false;
       }
       else if (response.status === 500) {
-        this.setState({
-          isModalVisible1: true,
-          modalMessage: 'Network Error',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Network Error');
+        return false;
       }
       else if (response.status === 200) {
         let json = await response.json();
-        console.log('ok it worked')
+        //store resulting data in array
         this.setState({
           isLoading: false,
           userData: json,
@@ -81,40 +64,29 @@ export default class Contacts extends Component {
       console.log(error);
     }
   };
-
+  // blocked contacts 
   displayBlockedContacts = async () => {
     try {
-      const userId = await AsyncStorage.getItem('@user_id');
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/blocked", {
         method: 'GET',
         headers: {
+          //check users session token in async story
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
+      //responses
       if (response.status === 401) {
-        this.setState({
-          isModalVisible1: true,
-          modalMessage: 'Unauthorised',
-        }); console.log('unauthorised')
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Unauthorised');
+        return false;
       }
       else if (response.status === 500) {
-        this.setState({
-          isModalVisible1: true,
-          modalMessage: 'Network Error',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Network Error');
+        return false;
       }
       else if (response.status === 200) {
         let json = await response.json();
-        console.log('ok')
         this.setState({
+          //set resulting block contact users in userdata1 array
           isLoading: false,
           userData1: json,
         });
@@ -125,66 +97,40 @@ export default class Contacts extends Component {
     }
   };
 
+  //delete to unblock uer, user_id passed as a param, used in api call url
   unBlock = async (user_id) => {
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block", {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        //check users session token in async story
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
+      //responses
       .then((response) => {
+        //success, show modal to user, rerender blocked conatcts and display current contacts
         if (response.status === 200) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'User Blocked',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User Blocked');
           this.displayBlockedContacts();
           this.displayContacts();
+          return false;
         }
         else if (response.status === 400) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'You can not block yourself',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('You can not block yourself');
+          return false;
         }
         else if (response.status === 401) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'Unauthorised',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Unauthorised');
+          return false;
         }
         else if (response.status === 404) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'User not found',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User not found');
+          return false;
         }
         else if (response.status === 500) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'Network Error',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Network Error');
+          return false;
         }
       })
       .catch((error) => {
@@ -194,77 +140,48 @@ export default class Contacts extends Component {
 
   componentWillUnmount() {
     console.log("HomePage unmounted");
-    this.displayContacts();
     clearInterval(this.interval);
   }
+  //upon loading render  this.displayContacts(); this.displayBlockedContacts(), call displayContacts every 7 
   componentDidMount() {
-
     this.displayContacts();
     this.displayBlockedContacts();
-    this.interval = setInterval(() => this.displayContacts(), 5000);
-    // this.getUserPhoto();
+    this.interval = setInterval(() => this.displayContacts(), 7000);
   }
 
+  //delete method to delete a user, user id passed as param to then be used in api call url
   deleteContact = async (user_id) => {
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/contact", {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        //check users session token in async story
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
 
       .then((response) => {
+        //success re render display contacts
         if (response.status === 200) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'User Deleted',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User Deleted');
           this.displayContacts();
+          return false;
         }
         else if (response.status === 400) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'You can not remove yourself',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('You can not remove yourself');
+          return false;
         }
         else if (response.status === 401) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'Unauthorised',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Unauthorised');
+          return false;
         }
         else if (response.status === 404) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'User not found',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User not found');
+          return false;
         }
         else if (response.status === 500) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'Network Error',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Network Error');
+          return false;
         }
       })
       .catch((error) => {
@@ -272,6 +189,7 @@ export default class Contacts extends Component {
       })
   }
 
+  //block user post, send user_id as a param, to then be used in api call url
   blockUser = async (user_id) => {
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + user_id + "/block", {
       method: 'POST',
@@ -280,58 +198,30 @@ export default class Contacts extends Component {
         'X-Authorization': await AsyncStorage.getItem('@session_token'),
       },
     })
+      //responses
       .then((response) => {
+        //success, show modal, re call this.displayContacts(); this.displayBlockedContacts();
         if (response.status === 200) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'User Blocked',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User Blocked');
           this.displayContacts();
           this.displayBlockedContacts();
+          return false;
         }
         else if (response.status === 400) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'You can not block yourself',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('You can not block yourself');
+          return false;
         }
         else if (response.status === 401) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'Unauthorised',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Unauthorised');
+          return false;
         }
         else if (response.status === 404) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'User not found',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User not found');
+          return false;
         }
         else if (response.status === 500) {
-          this.setState({
-            isModalVisible1: true,
-            modalMessage: 'Network Error',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Network Error');
+          return false;
         }
       })
       .catch((error) => {
@@ -339,12 +229,11 @@ export default class Contacts extends Component {
       })
   }
 
+  //toggle modal for blocked contacts
   toggleModal = () => {
     this.setState({ isModalVisible: !this.state.isModalVisible });
   }
 
-
-  // display search user in flat list
   render() {
     const navigation = this.props.navigation;
     if (this.state.isLoading) {
@@ -367,23 +256,14 @@ export default class Contacts extends Component {
             onPress={() => navigation.navigate("SearchContact")}>
             <Text style={styles.searchButtonText}> Click here to search</Text>
           </TouchableOpacity>
-
+          {/* display search user in flat list */}
           <FlatList
             data={this.state.userData}
             renderItem={({ item }) => {
-              // this.getUserPhoto(item.user_id);
               return (
                 <View>
                   <View style={styles.contactsView}>
                     <View>
-                      {/* <View style={styles.imageView}>
-                        {this.state.photo &&
-                          <Image
-                            source={{ uri: this.state.photo }}
-                            style={{ width: "100%", height: "100%" }}
-                          />
-                        }
-                      </View> */}
                       <Text style={styles.textView}>{item.first_name} {item.last_name}</Text>
                       <Text style={styles.textView}>{item.email}</Text>
                     </View>
@@ -409,10 +289,10 @@ export default class Contacts extends Component {
           />
           <View style={styles.blockImageStyle}>
             <TouchableOpacity style={styles.addStyle} onPress={this.toggleModal}>
-              <Image style={styles.imageStyle} source={{ uri: "https://images.freeimages.com/fic/images/icons/2463/glossy/512/user_male_block.png" }} />
+              <Image style={styles.imageStyle} source={require('/Users/adilbadat/Documents/MobileApp/Whats-That-Project/Assignment/assets/maleblock.png')} />
             </TouchableOpacity>
           </View>
-
+          {/* blocked contacts modal */}
           <Modal visible={this.state.isModalVisible} animationType="slide">
             <View style={styles.modalContent}>
               <FlatList
@@ -455,8 +335,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     width: '100%',
-    // paddingTop: 20,
-    // paddingHorizontal: 10,
   },
   header: {
     flexDirection: 'row',
@@ -503,14 +381,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    overflow: 'hidden', // set overflow to 'hidden'
+    overflow: 'hidden',
   },
   textView: {
     fontSize: 15,
-    maxWidth: '100%', // set a fixed maximum width for the text
-    overflow: 'hidden', // set overflow to 'hidden'
-    whiteSpace: 'nowrap', // prevent wrapping of text
-    textOverflow: 'ellipsis', // show ellipsis (...) for truncated text
+    maxWidth: '100%',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
   },
   buttonView: {
     flexDirection: 'row',
@@ -596,10 +474,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalContainer: {
-    // flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalText: {
     color: 'white',

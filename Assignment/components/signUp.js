@@ -17,8 +17,20 @@ class SignUp extends Component {
     };
     this.addUser = this.addUser.bind(this);
   }
+
+  //toggle open and close modal
   closeModal = () => {
     this.setState({ isModalVisible: false });
+  };
+
+  showModal = (message) => {
+    this.setState({
+      isModalVisible: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible: false });
+    }, 2000);
   };
 
 
@@ -27,71 +39,42 @@ class SignUp extends Component {
   }
 
   validatePassword = (password) => {
-
     const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
     return passwdregex.test(password);
   }
 
+  //adding a user 
   addUser() {
     const { first_name, last_name, email, password, confirmPassword } = this.state;
     const navigation = this.props.navigation;
     // make sure email and password isnt empty
     if (first_name == '' || last_name == '' || email == '' || password == '' || confirmPassword == '') {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Ensure email and password field are not empty',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Ensure email and password field are not empty');
       return false;
     }
 
     if (typeof email != 'string' || typeof password != 'string' || typeof first_name != 'string' || typeof last_name != 'string') {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Enter valid characters',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Enter valid characters');
       return false;
     }
 
     //call to validate email adn password, if requirements not met return false
     if (!this.validateEmail(email)) {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Email invalid format',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Email invalid format');
       return false;
     }
 
     if (!this.validatePassword(password)) {
-
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Enter strong password : \n 1 special symbol \n 1 uppercase character \n and a minimum of 8 charactes');
       return false;
     }
 
     if (confirmPassword != password) {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Passwords must match',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Passwords must match');
       return false;
     }
+
+    //call to create an account
 
     let toSend = {
       first_name: this.state.first_name,
@@ -108,37 +91,21 @@ class SignUp extends Component {
       },
       body: JSON.stringify(toSend)
     })
+      //API response
       .then((response) => {
         console.log(response.status)
         if (response.status === 201) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: ' User Created Successfully',
-          });
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-          console.log('hello!')
+          this.showModal('User Created Successfully');
+          return false;
         }
 
         else if (response.status === 400) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: ' User already exists',
-          });
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-
-        } else if (response.status === 500) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Internal Server Error',
-          });
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-          // throw 'network error'
+          this.showModal('User already exists');
+          return false;
+        }
+        else if (response.status === 500) {
+          this.showModal('Internal Server Error');
+          return false;
         }
       })
       .catch((error) => {

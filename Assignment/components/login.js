@@ -14,8 +14,35 @@ export default class Login extends Component {
       modalMessage: ''
     };
   }
+  //check if a user is logged in, is so send user to homepage
+  async componentDidMount() {
+    try {
+      const userId = await AsyncStorage.getItem("@user_id");
+      const sessionToken = await AsyncStorage.getItem(
+        "@session_token"
+      );
+      if (userId && sessionToken) {
+        this.props.navigation.navigate("tabNav");
+      }
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  //toggle open and close modal
   closeModal = () => {
     this.setState({ isModalVisible: false });
+  };
+
+  showModal = (message) => {
+    this.setState({
+      isModalVisible: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible: false });
+    }, 2000);
   };
 
   validateEmail = (email) => {
@@ -26,48 +53,29 @@ export default class Login extends Component {
     const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
     return passwdregex.test(password);
   }
-
+  // call to login user
   loginUser = async () => {
     const navigation = this.props.navigation;
 
     const { email, password } = this.state;
 
-    // make sure email and password isnt empty
+    // validations
     if (email == "" || password == "") {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Ensure email and password field are not empty',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Ensure email and password field are not empty');
       return false;
     }
 
     if (typeof email != "string" || typeof password != "string") {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Enter valid characters',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
-
+      this.showModal('Enter valid characters');
       return false;
     }
 
-    //call to validate email adn password, if requirements not met return false
     if (!this.validateEmail(email)) {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Email invalid format',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Email invalid format');
       return false;
     }
 
+    //API call to login user
     return fetch("http://127.0.0.1:3333/api/1.0.0/login", {
       method: 'POST',
       headers: {
@@ -81,46 +89,25 @@ export default class Login extends Component {
 
       .then(async (response) => {
         if (response.status === 400) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Invalid Email or Password',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-
+          this.showModal('Invalid Email or Password');
+          return false;
         }
         else if (response.status === 500) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Internal Server Error',
-          });
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-          // throw 'network error'
+          this.showModal('Internal Server Error');
+          return false;
         }
         const responseJson = await response.json();
         if (response.status === 200) {
-
+          //generate store active userid and session token within asyncstorage
           await AsyncStorage.setItem('@user_id', responseJson.id);
           await AsyncStorage.setItem('@session_token', responseJson.token);
           navigation.navigate('tabNav');
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'User successfully logged in',
-          });
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-
-
+          this.showModal('User successfully logged in');
+          return false;
         }
         console.log(response.status)
       })
       .catch((error) => {
-        // this.setState('error: ', error)
         console.log(error)
       });
   }

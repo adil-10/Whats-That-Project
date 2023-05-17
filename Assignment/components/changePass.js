@@ -16,125 +16,84 @@ export default class ChangePass extends Component {
     };
   }
 
+  //toggle open and close modal
   closeModal = () => {
-    this.setState({ isModalVisible1: false });
+    this.setState({ isModalVisible: false });
   };
 
+  showModal = (message) => {
+    this.setState({
+      isModalVisible: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible: false });
+    }, 2000);
+  };
+
+  //update password
   updateUser = async () => {
     const passwdregex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
     const { password, confirmPassword } = this.state;
 
+    //validations
     if (password == '' || confirmPassword == '') {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Ensure fields are not empty',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Ensure fields are not empty');
       return false;
     }
 
     if (this.state.confirmPassword != this.state.password) {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Passwords do not match',
-      });
-      // throw 'invalid email or pass'
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Passwords do not match');
       return false;
     }
 
     if (!passwdregex.test(this.state.password)) {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Enter a valid password',
-      });
-      // throw 'invalid email or pass'
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Enter a valid password');
       return false;
-      // return passwdregex.test(this.state.userData.password);
     }
 
+    //get user id from async storagge pass it into url
     const userId = await AsyncStorage.getItem('@user_id');
     let toSend = {
       password: this.state.password,
     };
-
+    //patch
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        //check if session token is active 
         'X-Authorization': await AsyncStorage.getItem('@session_token')
       },
       body: JSON.stringify(toSend)
     })
+      //responses
       .then((response) => {
         if (response.status === 400) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Bad request',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Bad request');
+          return false;
         }
         if (response.status === 401) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Unauthorised',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Unauthorised');
+          return false;
         }
         if (response.status === 404) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'User not found',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User not found');
+          return false;
         }
         if (response.status === 500) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Network error',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Network error');
+          return false;
         }
         if (response.status === 403) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Forbidden',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Forbidden');
+          return false;
         }
+        //user password updated
         if (response.status === 200) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Update Complete',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Update Complete');
+          return false;
         }
-
         console.log('user updated')
       })
       .catch((error) => {
@@ -185,8 +144,6 @@ export default class ChangePass extends Component {
     );
   }
 }
-
-
 
 const styles = StyleSheet.create({
   container: {

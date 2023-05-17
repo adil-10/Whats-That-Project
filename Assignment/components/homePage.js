@@ -17,24 +17,39 @@ export default class HomePage extends Component {
       modalMessage: ''
     };
   }
+  //toggle open and close modal
+  closeModal = () => {
+    this.setState({ isModalVisible: false });
+  };
 
+  showModal = (message) => {
+    this.setState({
+      isModalVisible: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible: false });
+    }, 2000);
+  };
+
+  //upon loading display all chats, set timer to call displaychat every 7 seconds
   componentDidMount() {
-    const navigation = this.props.navigation;
     console.log("HomePage mounted");
     this.displayChat()
-    this.interval = setInterval(() => this.displayChat(), 3000);
+    this.interval = setInterval(() => this.displayChat(), 7000);
+    //check if user is logged in
     this.unsubscribe = this.props.navigation.addListener('focus', () => {
       this.checkLoggedIn();
     });
-
   }
 
   componentWillUnmount() {
+    //clear the timer
     clearInterval(this.interval);
-    console.log("HomePage unmounted");
     this.unsubscribe();
   }
 
+  //check if user is logged in
   checkLoggedIn = async () => {
     const navigation = this.props.navigation;
     const value = await AsyncStorage.getItem('@session_token');
@@ -47,38 +62,25 @@ export default class HomePage extends Component {
       this.props.navigation.navigate('Login');
     }
   };
-
-  closeModal = () => {
-    this.setState({ isModalVisible1: false });
-  };
-
+  // api call display all chats, get method
   displayChat = async () => {
     try {
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/chat", {
         method: 'GET',
         headers: {
+          //check if session token  is active from async storage
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
       if (response.status === 401) {
-        this.setState({
-          isModalVisible1: true,
-          modalMessage: 'Unauthorised',
-        });
-        setTimeout(() => {
-          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Unauthorised');
+        return false;
       }
       else if (response.status === 500) {
-        this.setState({
-          isModalVisible1: true,
-          modalMessage: 'Network Error',
-        });
-        setTimeout(() => {
-          this.setState({ isModalVisible1: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Network Error');
+        return false;
       }
-
+      //success, store chat data in userdata array
       else if (response.status === 200) {
         let json = await response.json();
         this.setState({
@@ -91,7 +93,6 @@ export default class HomePage extends Component {
       console.log(error);
     }
   };
-
 
   render() {
     const navigation = this.props.navigation;
@@ -106,6 +107,7 @@ export default class HomePage extends Component {
             data={this.state.userData}
             renderItem={({ item }) => (
               <View style={styles.contactsView}>
+                {/* pass data (item) to the Chat page, used to retrive that chat id */}
                 <TouchableOpacity onPress={() => this.props.navigation.navigate('Chat', { item: item })}>
                   <Text style={styles.name}>{item.name}</Text>
                   <Text style={styles.lastMessage}>{item.last_message.message}</Text>
@@ -118,7 +120,7 @@ export default class HomePage extends Component {
 
         <View style={styles.addStyleContainer}>
           <TouchableOpacity style={styles.addStyle} onPress={() => navigation.navigate('NewChat')}>
-            <Image style={styles.imageStyle} source={{ uri: "https://cdn-icons-png.flaticon.com/512/14/14558.png" }} />
+            <Image style={styles.imageStyle} source={require('/Users/adilbadat/Documents/MobileApp/Whats-That-Project/Assignment/assets/newChat.png')} />
           </TouchableOpacity>
         </View>
 
@@ -202,7 +204,3 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 });
-
-
-// // sort out when a new chat is made it instantly gets added
-// // styling needs sorting

@@ -10,6 +10,21 @@ export default function CameraSendToServer() {
     const [type, setType] = useState(CameraType.back);
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const [camera, setCamera] = useState(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+
+    function closeModalHandler() {
+        setIsModalVisible(false);
+    }
+
+    function showModalHandler(message) {
+        setModalMessage(message);
+        setIsModalVisible(true);
+        setTimeout(() => {
+            setIsModalVisible(false);
+        }, 2000);
+    }
+
 
     function toggleCameraType() {
         setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
@@ -47,11 +62,35 @@ export default function CameraSendToServer() {
         })
 
             .then(async (response) => {
-                console.log("pic taken")
+                if (response.status === 400) {
+                    this.showModal('Bad request');
+                    return false;
+                }
+                else if (response.status === 401) {
+                    this.showModal('Unauthorised');
+                    return false;
+                }
+                else if (response.status === 403) {
+                    this.showModal('Forbidden');
+                    return false;
+                }
+                else if (response.status === 404) {
+                    this.showModal('User not found');
+                    return false;
+                }
+                else if (response.status === 500) {
+                    this.showModal('Network error');
+                    return false;
+                }
+                else if (response.status === 200) {
+                    showModalHandler('Picture taken');
+                    return false;
+                }
             })
             .catch((error) => {
-                console.log(error)
-            })
+                console.log(error);
+            });
+
     }
 
     if (!permission || !permission.granted) {

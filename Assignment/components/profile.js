@@ -4,6 +4,7 @@ import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, Flat
 import validator from 'validator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DisplayImage from '../MAD_2223_Hardware-master/src/views/display';
+
 export default class Profile extends Component {
   constructor(props) {
     super(props);
@@ -15,57 +16,65 @@ export default class Profile extends Component {
       isModalVisible: false,
       modalMessage: ''
     };
+    //reference - access method of display image
+    this.displayImageRef = React.createRef();
   }
+
+  componentDidMount() {
+    const displayImage = new DisplayImage();
+    this.getData();
+    this.unsubscribe = this.props.navigation.addListener('focus', () => {
+      // Call the get_profile_image method on the reference 
+      this.displayImageRef.current.get_profile_image();
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  //toggle and close modal
   closeModal = () => {
     this.setState({ isModalVisible: false });
+  };
+
+  showModal = (message) => {
+    this.setState({
+      isModalVisible: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible: false });
+    }, 2000);
   };
 
   validateEmail = (email) => {
     return validator.isEmail(email);
   }
   //display user data
-  //display user data
-  //display user data
   getData = async () => {
     try {
+      //user id of logged in user from async
       const userId = await AsyncStorage.getItem('@user_id');
-
+      // API call get method
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId, {
         method: 'GET',
         headers: {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-
+      //responses
       if (response.status === 401) {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Unauthorised',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Unauthorised');
+        return;
       }
       else if (response.status === 404) {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'User not found',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('User not found');
+        return;
       }
       else if (response.status === 500) {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Internal Server Error',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Internal Server Error');
+        return;
       }
       else if (response.status === 200) {
         let json = await response.json();
@@ -82,60 +91,25 @@ export default class Profile extends Component {
     }
   };
 
-
-
-  componentDidMount() {
-    // const cameraSendToServer = new CameraSendToServer();
-    // const container = document.getElementById('container');
-
-    this.unsubscribe = this.props.navigation.addListener('focus', () => {
-      this.getData();
-      // container.appendChild(cameraSendToServer.render());
-    });
-
-  }
-
-  componentWillUnmount() {
-    console.log("Profile unmounted");
-    this.unsubscribe();
-  }
-
   // update user info
   updateUser = async () => {
+    //get user id form async storage
     const userId = await AsyncStorage.getItem('@user_id');
     const { first_name, last_name, email } = this.state;
 
+    //validations
     if (first_name == '' || last_name == '' || email == '') {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Ensure textboxes are not empty',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Ensure textboxes are not empty');
       return false;
     }
 
     if (typeof email != 'string' || typeof first_name != 'string' || typeof last_name != 'string') {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Enter valid characters',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Enter valid characters');
       return false;
     }
 
-    //call to validate email adn password, if requirements not met return false
     if (!this.validateEmail(email)) {
-      this.setState({
-        isModalVisible: true,
-        modalMessage: 'Email invalid format',
-      });
-      setTimeout(() => {
-        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-      }, 2000);
+      this.showModal('Enter valid email');
       return false;
     }
 
@@ -145,77 +119,42 @@ export default class Profile extends Component {
       email: this.state.email,
     };
 
+    //API call patch method
     return fetch("http://127.0.0.1:3333/api/1.0.0/user/" + userId, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        //check if users session token is active
         'X-Authorization': await AsyncStorage.getItem('@session_token')
       },
       body: JSON.stringify(toSend)
     })
-
+      //response
       .then((response) => {
         if (response.status === 400) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Bad request',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Bad request');
+          return false;
         }
         if (response.status === 401) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Unauthorised',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Unauthorised');
+          return false;
         }
         if (response.status === 404) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'User not found',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User not found');
+          return false;
         }
         if (response.status === 500) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Network error',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Network error');
+          return false;
         }
         if (response.status === 403) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Forbidden',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Forbidden');
+          return false;
         }
         if (response.status === 200) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Update Complete',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Update Complete');
+          return false;
         }
-
         console.log('user updated')
       })
       .catch((error) => {
@@ -228,61 +167,41 @@ export default class Profile extends Component {
     const navigation = this.props.navigation;
     console.log('logout');
     try {
+      //api call post
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/logout", {
         method: 'POST',
         headers: {
+          //check if session token is active
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-
+      //response
       if (response.status === 401) {
         console.log('Unauthorised');
         await AsyncStorage.removeItem('@session_token');
         await AsyncStorage.removeItem('@user_id');
         navigation.navigate('Login');
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Unauthorised',
-        });
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Unauthorised');
+        return false;
       }
       else if (response.status === 500) {
-        console.log('Unauthorised');
         await AsyncStorage.removeItem('@session_token');
         await AsyncStorage.removeItem('@user_id');
         navigation.navigate('Login');
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Network Error',
-        });
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Network Error');
+        return false;
       }
       else if (response.status === 200) {
+        //remove the user id and session token from async storage
         await AsyncStorage.removeItem('@session_token');
         await AsyncStorage.removeItem('@user_id');
-
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Logout successful',
-        });
-        console.log(this.state.isModalVisible)
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Logout successful');
         navigation.navigate('Login');
+        return false;
       }
       else {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Something went wrong',
-        });
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Something went wrong');
+        return false;
       }
     }
     catch (error) {
@@ -301,7 +220,8 @@ export default class Profile extends Component {
         <View style={styles.container2}>
 
           <TouchableOpacity style={styles.profileImage} onPress={() => this.props.navigation.navigate("CameraSendToServer")}>
-            <DisplayImage />
+            {/* render display image with reference attribute set to displayImageRef */}
+            <DisplayImage ref={this.displayImageRef} />
           </TouchableOpacity>
 
           <TextInput

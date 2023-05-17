@@ -17,67 +17,61 @@ class SearchContact extends Component {
       accountFound: null,
       user_id: '',
       userData: [],
+      searchClicked: false,
       isModalVisible: false,
       modalMessage: ''
     };
   }
+
+  //toggle open and close modal
   closeModal = () => {
-    this.setState({ isModalVisible1: false });
+    this.setState({ isModalVisible: false });
   };
 
-  // change so you can search first and last name too
-  //needs validation for if email not found
+  showModal = (message) => {
+    this.setState({
+      isModalVisible: true,
+      modalMessage: message,
+    });
+    setTimeout(() => {
+      this.setState({ isModalVisible: false });
+    }, 2000);
+  };
+
+  // search user
   SearchUser = async () => {
     try {
-
-      const user_id = this.state.user_id;
       const search = this.state.search;
       const search_in = this.state.search_in;
       const limit = this.state.limit;
       const offset = this.state.offset;
+      //api call url, passing in search in, offset and limit, rendering 8 contacts per page, search with everything (firstname, lastname etc)
       let response = await fetch("http://127.0.0.1:3333/api/1.0.0/search?q=" + search + "&search_in=" + search_in + "&limit=" + limit + "&offset=" + offset, {
         method: 'GET',
         headers: {
           'X-Authorization': await AsyncStorage.getItem('@session_token'),
         },
       });
-
+      //response
       if (response.status === 400) {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Bad request',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Bad request');
+        return false;
       }
       else if (response.status === 401) {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Unauthorised',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Unauthorised');
+        return false;
       }
       else if (response.status === 500) {
-        this.setState({
-          isModalVisible: true,
-          modalMessage: 'Network Error',
-        });
-        // throw 'invalid email or pass'
-        setTimeout(() => {
-          this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-        }, 2000);
+        this.showModal('Network Error');
+        return false;
       }
+      //success
       else if (response.status === 200) {
         let json = await response.json();
-        console.log('ok it worked')
         this.setState({
           isLoading: false,
           userData: json,
+          searchClicked: true,
         });
       }
     }
@@ -85,9 +79,9 @@ class SearchContact extends Component {
       console.log(error);
     }
   };
-
-
+  //add contact after searching, passing user id as a param for url
   addContact = async (user_id) => {
+    //sending user id to api
     let toSend = {
       user_id: user_id,
     };
@@ -95,69 +89,38 @@ class SearchContact extends Component {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        //check if users session token from async storage
         'X-Authorization': await AsyncStorage.getItem('@session_token')
       },
       body: JSON.stringify(toSend)
     })
+      //responses
       .then((response) => {
         if (response.status === 200) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'User added',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
-          this.SearchUser();
+          this.showModal('User added');
+          return false;
         }
         else if (response.status === 400) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'You can not add yourself',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('You can not add yourself');
+          return false;
         }
         else if (response.status === 401) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Unauthorised',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Unauthorised');
+          return false;
         }
         else if (response.status === 404) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'User not found',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('User not found');
+          return false;
         }
         else if (response.status === 500) {
-          this.setState({
-            isModalVisible: true,
-            modalMessage: 'Network Error',
-          });
-          // throw 'invalid email or pass'
-          setTimeout(() => {
-            this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-          }, 2000);
+          this.showModal('Network Error');
+          return false;
         }
       })
       .catch((error) => {
         console.log('error:', error);
       })
   }
-
-
 
   render() {
     if (this.state.isLoading) {
@@ -168,7 +131,8 @@ class SearchContact extends Component {
       );
     }
     else {
-      const { offset } = this.state;
+      //used to show the limit and offset of the [age]
+      const { offset, searchClicked } = this.state;
       return (
         <View style={styles.container}>
 
@@ -195,8 +159,7 @@ class SearchContact extends Component {
             </TouchableOpacity>
           </View>
 
-          {this.state.Message ? <Text>{this.state.Message}</Text> : null}
-
+          {/* Flatlist to display users searched for */}
           <FlatList
             data={this.state.userData}
             renderItem={({ item }) => (
@@ -217,25 +180,34 @@ class SearchContact extends Component {
             )}
             keyExtractor={({ user_id }, index) => user_id}
           />
-
-          <TouchableOpacity
-            onPress={() => {
-              this.setState({ offset: (offset + 5) }, () => {
-                this.SearchUser();
-              });
-            }}
-          ><Text>Next Page</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => {
-              this.setState({ offset: (offset - 5) }, () => {
-                this.SearchUser();
-              });
-            }}
-          ><Text>previous Page</Text>
-          </TouchableOpacity>
-
+          {/* only enable next and previous buttons when search button clicked and searchClicked is true */}
+          {searchClicked && (
+            <View style={styles.nextButtonContainer}>
+              <View style={styles.next}>
+                <TouchableOpacity
+                  onPress={() => {
+                    this.setState({ offset: (offset + 5) }, () => {
+                      this.SearchUser();
+                    });
+                  }}
+                >
+                  <Text>Next</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.previous}>
+                <TouchableOpacity
+                  onPress={() => {
+                    this.setState({ offset: (offset - 5) }, () => {
+                      this.SearchUser();
+                    });
+                  }}
+                >
+                  <Text>Previous</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          {/* modal for validadtions and api responses */}
           <Modal visible={this.state.isModalVisible} animationType='slide' transparent={true}>
             <View style={styles.modalContainer}>
               <Text style={styles.modalText}>{this.state.modalMessage}</Text>
@@ -349,10 +321,8 @@ const styles = StyleSheet.create({
     marginLeft: 10, // Add this line
   },
   modalContainer: {
-    // flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalText: {
     color: 'white',
@@ -363,5 +333,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     borderRadius: 10,
   },
-
+  nextButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: '35%'
+  },
+  next: {
+    padding: 10
+  }
 });

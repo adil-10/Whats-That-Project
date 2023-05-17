@@ -12,10 +12,22 @@ export default class NewChat extends Component {
         };
         this.startChat = this.startChat.bind(this);
     }
+    //toggle open and close modal
     closeModal = () => {
         this.setState({ isModalVisible: false });
     };
 
+    showModal = (message) => {
+        this.setState({
+            isModalVisible: true,
+            modalMessage: message,
+        });
+        setTimeout(() => {
+            this.setState({ isModalVisible: false });
+        }, 2000);
+    };
+
+    //creating a chat, post api call
     startChat = async () => {
         const navigation = this.props.navigation;
 
@@ -29,50 +41,29 @@ export default class NewChat extends Component {
                 'Content-Type': 'application/json',
                 'X-Authorization': await AsyncStorage.getItem('@session_token'),
             },
+            //passing relevent data to api
             body: JSON.stringify(toSend)
         })
             .then(async (response) => {
+                //responses
                 if (response.status === 400) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Bad request',
-                    });
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-                    }, 2000);
+                    this.showModal('Bad request');
+                    return false;
                 }
                 else if (response.status === 401) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Unauthorised',
-                    });
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-                    }, 2000);
+                    this.showModal('Unauthorised');
+                    return false;
                 }
                 if (response.status === 500) {
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Netword error',
-                    });
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-                    }, 2000);
+                    this.showModal('Netword error');
+                    return false;
                 }
+                //success chat created
                 if (response.status === 201) {
                     const responseJson = await response.json();
-                    this.setState({
-                        isModalVisible: true,
-                        modalMessage: 'Chat created',
-                    });
-                    setTimeout(() => {
-                        this.setState({ isModalVisible: false }); // close the modal after 2 seconds
-                    }, 2000);
-                    // this.props.navigation.navigate('tabNav')
+                    this.showModal('Chat created');
+                    return false;
                 }
-
-
-
             })
             .catch((error) => {
                 console.log(error);
@@ -178,10 +169,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     modalContainer: {
-        // flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        // backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalText: {
         color: 'white',
