@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, Modal, Alert, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
+import { Text, View, Modal, TouchableOpacity, StyleSheet, FlatList, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
 export default class HomePage extends Component {
   constructor(props) {
